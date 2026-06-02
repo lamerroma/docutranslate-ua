@@ -12,7 +12,7 @@ def get_original_markdown(prompt: str):
     if match:
         return match.group(1)
     else:
-        raise ValueError("无法从prompt中提取初始文本")
+        raise ValueError("Не вдалось витягти початковий текст з prompt")
 
 
 def generate_prompt(markdown_text: str, to_lang: str):

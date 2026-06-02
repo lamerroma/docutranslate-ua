@@ -7,7 +7,7 @@ import httpx
 
 def mask_secrets(text: str) -> str:
     """
-    隐藏字符串中的敏感信息，包括 api_key、mineru_token 等。
+    隐藏символів串中的敏感信息，包括 api_key、mineru_token 等.
     """
     if not text:
         return text
@@ -36,14 +36,14 @@ def mask_secrets(text: str) -> str:
         text
     )
 
-    # 隐藏常见的 token 模式 (40+ 字符的字母数字字符串，可能是 OpenAI key 等)
+    # 隐藏常见的 token 模式 (40+ символів的字母数字символів串，可能是 OpenAI key 等)
     text = re.sub(
         r'(sk-[a-zA-Z0-9_\-]{20,})',
         r'[OPENAI_KEY_HIDDEN]',
         text
     )
 
-    # 隐藏以 "token" 结尾或包含 "token" 的长字符串值
+    # 隐藏以 "token" 结尾或包含 "token" 的长символів串值
     text = re.sub(
         r'([a-zA-Z_]+token[a-zA-Z_]*["\']?\s*[:=]\s*["\']?)([a-zA-Z0-9_\-\.]{10,})',
         r'\1[HIDDEN]',

@@ -41,7 +41,7 @@ def _md_to_docx_via_pandoc(md_content: str, logger=global_logger) -> bytes:
         md_file = tmpdir / "input.md"
         docx_file = tmpdir / "output.docx"
 
-        # 写入markdown文件（使用utf-8-sig确保中文兼容）
+        # 写入markdownфайл（使用utf-8-sig确保中文兼容）
         md_file.write_text(md_content, encoding="utf-8-sig")
 
         # 执行pandoc转换
@@ -52,10 +52,10 @@ def _md_to_docx_via_pandoc(md_content: str, logger=global_logger) -> bytes:
                 text=True,
                 check=True
             )
-            logger.info(f"Pandoc转换成功: {result.stdout}")
+            logger.info(f"Pandoc-конвертація успішна: {result.stdout}")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Pandoc转换失败: {e.stderr}")
-            raise RuntimeError(f"Pandoc转换失败: {e.stderr}")
+            logger.error(f"Pandoc-конвертація провалилась: {e.stderr}")
+            raise RuntimeError(f"Pandoc-конвертація провалилась: {e.stderr}")
 
         return docx_file.read_bytes()
 
@@ -272,7 +272,7 @@ def _md_to_docx_via_python(md_content: str, logger=global_logger) -> bytes:
     支持：Markdown语法 + 原生HTML表格(<table>)
     """
     if DocxDocument is None:
-        raise RuntimeError("依赖缺失: 未安装 python-docx，无法执行转换。")
+        raise RuntimeError("依赖缺失: 未安装 python-docx，无法执行转换.")
 
     doc = DocxDocument()
 
@@ -493,7 +493,7 @@ class MD2DocxExporter(Exporter):
 
         if engine == "pandoc":
             if not is_pandoc_available():
-                self.logger.warning("Pandoc不可用，回退到纯Python模式")
+                self.logger.warning("Pandoc недоступний, відкат до чистого Python-режиму")
                 docx_bytes = _md_to_docx_via_python(md_content, self.logger)
             else:
                 docx_bytes = _md_to_docx_via_pandoc(md_content, self.logger)

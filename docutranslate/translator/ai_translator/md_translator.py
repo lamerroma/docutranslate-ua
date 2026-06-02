@@ -67,21 +67,21 @@ class MDTranslator(AiTranslator):
 
     def _decode_content(self, document: MarkdownDocument) -> str:
         """
-        使用 charset_normalizer 自动检测文档编码并解码内容。
+        使用 charset_normalizer 自动检测文档编码并解码内容.
         """
         result = charset_normalizer.from_bytes(document.content).best()
         if result is None:
-            self.logger.error("无法检测Markdown文件编码")
+            self.logger.error("Не вдалось визначити кодування Markdown-файлу")
             return ""
         detected_encoding = result.encoding
         try:
             return document.content.decode(detected_encoding)
         except (UnicodeDecodeError, AttributeError) as e:
-            self.logger.error(f"无法使用检测到的编码 {detected_encoding} 解码文件: {e}")
+            self.logger.error(f"Не вдалось використати виявлене кодування {detected_encoding} декодування файлу: {e}")
             return ""
 
     def translate(self, document: MarkdownDocument) -> Self:
-        self.logger.info("正在翻译markdown")
+        self.logger.info("Перекладаю markdown")
         with MDMaskUrisContext(document):
             # 使用新接口，获取 chunks 和对应的 separators
             content_str = self._decode_content(document)
@@ -113,7 +113,7 @@ class MDTranslator(AiTranslator):
                 if self.translate_agent and self.glossary:
                     self.translate_agent.update_glossary_dict(self.glossary.glossary_dict)
 
-            self.logger.info(f"markdown分为{len(chunks)}块 (其中需翻译{len(translate_chunks)}块)")
+            self.logger.info(f"markdown розбито на{len(chunks)}блоків (з них для перекладу{len(translate_chunks)}блоків)")
 
             if self.translate_agent and translate_chunks:
                 translated_sub_results: list[str] = self.translate_agent.send_chunks(translate_chunks)
@@ -127,11 +127,11 @@ class MDTranslator(AiTranslator):
             content = content.replace(r'\）', r'\)')
 
             document.content = content.encode()
-        self.logger.info("翻译完成")
+        self.logger.info("Переклад завершено")
         return self
 
     async def translate_async(self, document: MarkdownDocument) -> Self:
-        self.logger.info("正在翻译markdown")
+        self.logger.info("Перекладаю markdown")
         with MDMaskUrisContext(document):
             # 异步方法同样更新
             content_str = await asyncio.to_thread(self._decode_content, document)
@@ -163,7 +163,7 @@ class MDTranslator(AiTranslator):
                 if self.translate_agent and self.glossary:
                     self.translate_agent.update_glossary_dict(self.glossary.glossary_dict)
 
-            self.logger.info(f"markdown分为{len(chunks)}块 (其中需翻译{len(translate_chunks)}块)")
+            self.logger.info(f"markdown розбито на{len(chunks)}блоків (з них для перекладу{len(translate_chunks)}блоків)")
 
             if self.translate_agent and translate_chunks:
                 translated_sub_results: list[str] = await self.translate_agent.send_chunks_async(translate_chunks)
@@ -177,5 +177,5 @@ class MDTranslator(AiTranslator):
                 document.content = content.encode()
 
             await asyncio.to_thread(run)
-        self.logger.info("翻译完成")
+        self.logger.info("Переклад завершено")
         return self

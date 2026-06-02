@@ -53,7 +53,7 @@ Below is an example of how merging should be done when necessary:
 
 input:
 ```json
-{{"3":"汤姆说:“杰克你","4":"好”。"}}
+{{"3":"汤姆说:“杰克你","4":"好”."}}
 ```
 output:
 ```json
@@ -69,7 +69,7 @@ def get_original_segments(prompt: str):
     if match:
         return match.group(1)
     else:
-        raise ValueError("无法从prompt中提取初始文本")
+        raise ValueError("Не вдалось витягти початковий текст з prompt")
 
 
 def get_target_segments(result: str):
@@ -107,8 +107,8 @@ class SegmentsTranslateAgent(Agent):
 
     def get_continue_prompt(self, accumulated_result: str, prompt: str) -> str:
         """
-        继续获取时的提示词。
-        只返回新增的数组元素，而不是完整的JSON数组。
+        继续获取时的提示词.
+        只返回新增的数组元素，而不是完整的JSON数组.
         """
         # 从原始prompt中提取原文的ID范围，帮助模型正确继续
         try:
@@ -124,14 +124,14 @@ class SegmentsTranslateAgent(Agent):
         except Exception:
             id_range_info = ""
 
-        return f"""你之前的翻译输出被截断了。
+        return f"""你之前的翻译输出被截断了.
 
 之前已输出的内容:
 ```json
 {accumulated_result}
 ```
 
-请继续输出后续的翻译内容。只输出新增的数组元素，格式为JSON数组。
+请继续输出后续的翻译内容.只输出新增的数组元素，格式为JSON数组.
 
 {id_range_info}
 
@@ -146,9 +146,9 @@ class SegmentsTranslateAgent(Agent):
 
     def merge_continue_result(self, accumulated_result: str, additional_result: str) -> str:
         """
-        合并继续获取的结果。
-        处理追加模式的数组合并：将追加的数组元素合并到已有的数组中。
-        自动去重：如果 additional 中有重复的 ID，保留 accumulated 中的版本。
+        合并继续获取的结果.
+        处理追加模式的数组合并：将追加的数组元素合并到已有的数组中.
+        自动去重：如果 additional 中有重复的 ID，保留 accumulated 中的版本.
         """
         try:
             # 尝试解析两个部分
@@ -187,21 +187,21 @@ class SegmentsTranslateAgent(Agent):
 
     def _result_handler(self, result: str, origin_prompt: str, logger: Logger):
         """
-        处理成功的API响应。
+        处理成功的API响应.
         - 输入格式: [{"id":"1","t":"翻译"}, ...]
         - 输出格式: {"1": "翻译", "2": "翻译2"}
-        - 如果ID完全匹配，返回翻译结果。
-        - 如果ID不匹配，构造一个部分成功的结果，并通过 PartialTranslationError 异常抛出，以触发重试。
-        - 其他错误（如JSON解析失败、模型偷懒）则抛出普通 ValueError 触发重试。
+        - 如果ID完全匹配，返回翻译结果.
+        - 如果ID不匹配，构造一个部分成功的结果，并通过 PartialTranslationError 异常抛出，以触发重试.
+        - 其他помилка（如JSON解析失败、模型偷懒）则抛出普通 ValueError 触发重试.
         """
         try:
             original_segments = get_original_segments(origin_prompt)
         except ValueError as e:
-            raise AgentResultError(f"无法从prompt中提取初始文本: {e}")
+            raise AgentResultError(f"Не вдалось витягти початковий текст з prompt: {e}")
         repaired_result = get_target_segments(result)  # 直接返回解析后的 list 或 dict
         if not repaired_result:
             if original_segments.strip() != "":
-                raise AgentResultError("result为空值但原文不为空")
+                raise AgentResultError("result порожній, але оригінал не порожній")
             return {}
 
         try:
@@ -231,7 +231,7 @@ class SegmentsTranslateAgent(Agent):
             # 只对有 id 的元素排序
             sorted_result = sorted([x for x in repaired_array if isinstance(x, dict) and "id" in x], key=lambda x: x.get("id", ""))
             if sorted_original == sorted_result:
-                raise AgentResultError("翻译结果与原文完全相同，疑似翻译失败，将进行重试。")
+                raise AgentResultError("翻译结果与原文完全相同，疑似翻译失败，将进行重试.")
 
             # 转换为 dict 便于处理
             result_dict = {item["id"]: item["t"] for item in repaired_array if "id" in item and "t" in item}
@@ -248,7 +248,7 @@ class SegmentsTranslateAgent(Agent):
 
                 # 只保留原文有的ID，丢弃多余的ID（可能是模型幻觉）
                 if extra_keys:
-                    logger.warning(f"检测到多余的ID（可能是模型幻觉，已丢弃）: {extra_keys}")
+                    logger.warning(f"Виявлено зайві ID (можливо, галюцинація моделі, відкинуто): {extra_keys}")
 
                 # 合并已翻译的部分和缺失的部分
                 for key in common_keys:
@@ -260,9 +260,9 @@ class SegmentsTranslateAgent(Agent):
                 if not missing_keys and not extra_keys:
                     return final_chunk
 
-                # 如果有缺失的ID，抛出部分结果异常
+                # 如果有Відсутні ID，抛出部分结果异常
                 if missing_keys:
-                    logger.warning(f"缺失的ID: {missing_keys}")
+                    logger.warning(f"Відсутні ID: {missing_keys}")
                     raise PartialAgentResultError("ID不匹配，触发重试", partial_result=final_chunk, append_prompt=f"\nBe careful not to omit any IDs from the input; do not combine sentences when translating.\n")
 
             # 如果ID完全匹配（理想情况），正常返回
@@ -272,18 +272,18 @@ class SegmentsTranslateAgent(Agent):
             return result_dict
 
         except (RuntimeError, JSONDecodeError) as e:
-            # 对于JSON解析等硬性错误，继续抛出普通ValueError
+            # 对于JSON解析等硬性помилка，继续抛出普通ValueError
             raise AgentResultError(f"结果处理失败: {e.__repr__()}")
 
     def _error_result_handler(self, origin_prompt: str, logger: Logger):
         """
-        处理在所有重试后仍然失败的请求。
-        作为备用方案，返回原文内容，并将所有值转换为字符串。
+        处理在所有重试后仍然失败的请求.
+        作为备用方案，返回原文内容，并将所有值转换为символів串.
         """
         try:
             original_segments = get_original_segments(origin_prompt)
         except ValueError as e:
-            logger.error(f"无法从prompt中提取初始文本: {e}")
+            logger.error(f"Не вдалось витягти початковий текст з prompt: {e}")
             return {}
         if original_segments == "":
             return {}
@@ -294,8 +294,8 @@ class SegmentsTranslateAgent(Agent):
                 original_chunk[key] = f"{value}"
             return original_chunk
         except (RuntimeError, JSONDecodeError):
-            logger.error(f"原始prompt也不是有效的json格式: {original_segments}")
-            # 如果原始prompt本身也无效，返回一个清晰的错误对象
+            logger.error(f"Оригінальний prompt теж не валідний JSON: {original_segments}")
+            # 如果原始prompt本身也无效，返回一个清晰的помилка对象
             return {"error": f"{original_segments}"}
 
     def send_segments(self, segments: list[str], chunk_size: int) -> list[str]:
@@ -310,17 +310,17 @@ class SegmentsTranslateAgent(Agent):
         for chunk in translated_chunks:
             try:
                 if not isinstance(chunk, dict):
-                    self.logger.warning(f"接收到的chunk不是有效的字典，已跳过: {chunk}")
+                    self.logger.warning(f"Отриманий chunk не є валідним словником, пропущено: {chunk}")
                     continue
                 for key, val in chunk.items():
                     if key in indexed_translated:
                         indexed_translated[key] = val
                     else:
-                        self.logger.warning(f"在结果chunk中发现未知键 '{key}'，已忽略。")
+                        self.logger.warning(f"У результаті chunk виявлено невідомий ключ '{key}', проігноровано.")
             except (AttributeError, TypeError) as e:
-                self.logger.error(f"处理chunk时发生类型或属性错误，已跳过。Chunk: {chunk}, 错误: {e.__repr__()}")
+                self.logger.error(f"Помилка типу або атрибуту під час обробки chunk, пропущено. Chunk: {chunk}, помилка: {e.__repr__()}")
             except Exception as e:
-                self.logger.error(f"处理chunk时发生未知错误: {e.__repr__()}")
+                self.logger.error(f"Невідома помилка під час обробки chunk: {e.__repr__()}")
 
         # 重建最终列表
         result = []
@@ -348,18 +348,18 @@ class SegmentsTranslateAgent(Agent):
         for chunk in translated_chunks:
             try:
                 if not isinstance(chunk, dict):
-                    self.logger.error(f"接收到的chunk不是有效的字典，已跳过: {chunk}")
+                    self.logger.error(f"Отриманий chunk не є валідним словником, пропущено: {chunk}")
                     continue
                 for key, val in chunk.items():
                     if key in indexed_translated:
                         # 此处不再需要 str(val)，因为 _result_handler 已经处理好了
                         indexed_translated[key] = val
                     else:
-                        self.logger.warning(f"在结果chunk中发现未知键 '{key}'，已忽略。")
+                        self.logger.warning(f"У результаті chunk виявлено невідомий ключ '{key}', проігноровано.")
             except (AttributeError, TypeError) as e:
-                self.logger.error(f"处理chunk时发生类型或属性错误，已跳过。Chunk: {chunk}, 错误: {e.__repr__()}")
+                self.logger.error(f"Помилка типу або атрибуту під час обробки chunk, пропущено. Chunk: {chunk}, помилка: {e.__repr__()}")
             except Exception as e:
-                self.logger.error(f"处理chunk时发生未知错误: {e.__repr__()}")
+                self.logger.error(f"Невідома помилка під час обробки chunk: {e.__repr__()}")
 
         # 重建最终列表
         result = []

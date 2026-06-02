@@ -6,7 +6,7 @@ import sys # 用于检查命令行参数数量
 
 def main():
     parser = argparse.ArgumentParser(
-        description="DocuTranslate: 一个文档翻译工具。",
+        description="DocuTranslate: 一个文档翻译工具.",
         # 更新示例，展示如何使用 host 参数
         epilog="示例:\n"
                "  docutranslate -i                           (启动图形界面，默认本地访问)\n"
@@ -23,7 +23,7 @@ def main():
     parser.add_argument(
         "-i", "--interactive",
         action="store_true",
-        help="打开图形化用户界面 (GUI) 并启动后端服务。"
+        help="打开图形化用户界面 (GUI) 并启动后端服务."
     )
 
     # --- 新增 host 参数 ---
@@ -31,7 +31,7 @@ def main():
         "--host",
         type=str,
         default=None,
-        help="指定服务监听的主机地址。默认为 '127.0.0.1' (仅本地)。若需局域网访问请设为 '0.0.0.0'。"
+        help="指定服务监听的主机地址.默认为 '127.0.0.1' (仅本地).若需局域网访问请设为 '0.0.0.0'."
     )
     # ---------------------
 
@@ -39,32 +39,32 @@ def main():
         "-p", "--port",
         type=int,
         default=None,
-        help="指定服务监听的端口号（默认：8010）。"
+        help="指定服务监听的端口号（默认：8010）."
     )
 
     parser.add_argument(
         "--cors",
         action="store_true",
-        help="启用跨域资源共享 (CORS)。如果是前后端分离开发或需跨域调用 API，请开启此选项。"
+        help="启用跨域资源共享 (CORS).如果是前后端分离开发或需跨域调用 API，请开启此选项."
     )
 
     parser.add_argument(
         "--cors-regex",
         type=str,
         default=r"^(https?://.*|null|file://.*)$",
-        help="设置 CORS 允许的 Origin 正则表达式。默认为允许所有 HTTP 和 HTTPS 请求。"
+        help="设置 CORS 允许的 Origin 正则表达式.默认为允许所有 HTTP 和 HTTPS 请求."
     )
 
     parser.add_argument(
         "--mcp",
         action="store_true",
-        help="启动 MCP (Model Context Protocol) 服务器，用于 AI 助手集成。"
+        help="启动 MCP (Model Context Protocol) 服务器，用于 AI 助手集成."
     )
 
     parser.add_argument(
         "--with-mcp",
         action="store_true",
-        help="启动 Web UI 时同时启用 MCP SSE 端点（共用任务队列）。"
+        help="启动 Web UI 时同时启用 MCP SSE 端点（共用任务队列）."
     )
 
     parser.add_argument(
@@ -92,13 +92,13 @@ def main():
     parser.add_argument(
          "--version",
         action="store_true",
-        help="查看版本号。"
+        help="查看版本号."
     )
 
     # 检查是否没有提供任何参数
     if len(sys.argv) == 1:
         print("欢迎使用 DocuTranslate！")
-        print("请使用 '-i' 或 '--interactive' 选项来启动图形化界面。")
+        print("请使用 '-i' 或 '--interactive' 选项来启动图形化界面.")
         print("\n示例:")
         print("  docutranslate -i")
         print("  docutranslate -i --host 0.0.0.0 (局域网共享)")

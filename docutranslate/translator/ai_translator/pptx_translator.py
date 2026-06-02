@@ -20,8 +20,8 @@ from docutranslate.translator.ai_translator.base import AiTranslatorConfig, AiTr
 # ---------------- 辅助工具类：语言与字体智能适配 ----------------
 class LanguageHelper:
     """
-    专门处理 PPTX 的语言标签与字体渲染适配。
-    利用 regex 库的 Unicode 属性检测脚本类型。
+    专门处理 PPTX 的语言标签与字体渲染适配.
+    利用 regex 库的 Unicode 属性检测脚本类型.
     """
 
     # 常用语言映射 (覆盖常见写法)
@@ -41,13 +41,13 @@ class LanguageHelper:
     # \p{Han}: 汉字
     # \p{Hiragana} / \p{Katakana}: 日文假名
     # \p{Hangul}: 韩文
-    # 如果包含这些字符，说明需要启用东亚字体渲染
+    # 如果包含这些символів，说明需要启用东亚字体渲染
     _CJK_PATTERN = regex.compile(r'[\p{Han}\p{Hiragana}\p{Katakana}\p{Hangul}]')
 
     @classmethod
     def guess_lang_tag(cls, config_lang: str, text_content: str) -> str:
         """
-        根据用户配置和实际文本内容，推断最合适的 PPT XML lang 属性。
+        根据用户配置和实际文本内容，推断最合适的 PPT XML lang 属性.
         """
         # 1. 优先尝试解析用户配置
         if config_lang:
@@ -59,9 +59,9 @@ class LanguageHelper:
                 return config_lang
 
         # 2. [兜底策略] 基于内容的脚本检测
-        # 使用 regex 检查是否包含中日韩字符
+        # 使用 regex 检查是否包含中日韩символів
         if cls._CJK_PATTERN.search(text_content):
-            # 包含 CJK 字符 -> 声明为中文，激活东亚字体槽 (a:ea)
+            # 包含 CJK символів -> 声明为中文，激活东亚字体槽 (a:ea)
             # 即使是日文/韩文，设为 zh-CN 在字体回退机制上通常也能正确激活 CJK 渲染逻辑
             return "zh-CN"
         else:
@@ -80,8 +80,8 @@ class PPTXTranslatorConfig(AiTranslatorConfig):
 # ---------------- 主类 ----------------
 class PPTXTranslator(AiTranslator):
     """
-    基于 python-pptx 的 .pptx 文件翻译器 (最终增强版)。
-    使用 regex 库进行高性能的脚本检测。
+    基于 python-pptx 的 .pptx файл翻译器 (最终增强版).
+    使用 regex 库进行高性能的脚本检测.
     """
 
     def __init__(self, config: PPTXTranslatorConfig):

@@ -83,7 +83,7 @@ class ConverterMineruDeploy(X2MarkdownConverter):
             "output_dir": self.config.output_dir,
             "backend": self.config.backend,
             "parse_method": self.config.parse_method,
-            # bool 类型在 multipart/form-data 中通常需要转为字符串 'true'/'false'，但 httpx 会处理 python bool
+            # bool 类型在 multipart/form-data 中通常需要转为символів串 'true'/'false'，但 httpx 会处理 python bool
             "formula_enable": str(self.config.formula_enable).lower(),
             "table_enable": str(self.config.table_enable).lower(),
             "return_md": str(self.config.return_md).lower(),
@@ -107,7 +107,7 @@ class ConverterMineruDeploy(X2MarkdownConverter):
         return data
 
     def convert(self, d: Document) -> MarkdownDocument:
-        self.logger.info("开始解析文件")
+        self.logger.info("Починаю розбір файлу")
         files = [("files", (d.name, d.content, "application/octet-stream"))]
         response = client.post(
             self._api_url,
@@ -116,9 +116,9 @@ class ConverterMineruDeploy(X2MarkdownConverter):
             timeout=2000,
         )
 
-        response.raise_for_status()  # 检查是否有错误
+        response.raise_for_status()  # 检查是否有помилка
 
-        # 检查是否返回了 JSON 错误响应
+        # 检查是否返回了 JSON помилка响应
         content_type = response.headers.get('content-type', '')
         if 'application/json' in content_type:
             result = response.json()
@@ -129,17 +129,17 @@ class ConverterMineruDeploy(X2MarkdownConverter):
         # Mineru API 返回 zip 时包含图片和 md
         md = embed_inline_image_from_zip(response.content, None)
         if md is None:
-            raise Exception("无法从 MinerU Deploy 返回的 ZIP 中提取 Markdown 文件")
+            raise Exception("无法从 MinerU Deploy 返回的 ZIP 中提取 Markdown файл")
         # 将原始 zip 存入附件
         self.attachments.append(
             AttachMent("mineru_deploy",
                        Document.from_bytes(content=response.content, suffix=".zip", stem="mineru_deploy"))
         )
-        self.logger.info("已转化为markdown")
+        self.logger.info("Конвертовано у markdown")
         return MarkdownDocument.from_bytes(md.encode(), suffix=".md", stem=d.stem)
 
     async def convert_async(self, d: Document) -> MarkdownDocument:
-        self.logger.info("开始解析文件")
+        self.logger.info("Починаю розбір файлу")
         files = [("files", (d.name, d.content, "application/octet-stream"))]
         response = await client_async.post(
             self._api_url,
@@ -150,7 +150,7 @@ class ConverterMineruDeploy(X2MarkdownConverter):
 
         response.raise_for_status()
 
-        # 检查是否返回了 JSON 错误响应
+        # 检查是否返回了 JSON помилка响应
         content_type = response.headers.get('content-type', '')
         if 'application/json' in content_type:
             result = response.json()
@@ -160,13 +160,13 @@ class ConverterMineruDeploy(X2MarkdownConverter):
 
         md = await asyncio.to_thread(embed_inline_image_from_zip, response.content, None)
         if md is None:
-            raise Exception("无法从 MinerU Deploy 返回的 ZIP 中提取 Markdown 文件")
+            raise Exception("无法从 MinerU Deploy 返回的 ZIP 中提取 Markdown файл")
         # 将原始 zip 存入附件
         self.attachments.append(
             AttachMent("mineru_deploy",
                        Document.from_bytes(content=response.content, suffix=".zip", stem="mineru_deploy"))
         )
-        self.logger.info("已转化为markdown")
+        self.logger.info("Конвертовано у markdown")
         return MarkdownDocument.from_bytes(md.encode(), suffix=".md", stem=d.stem)
 
     def support_format(self) -> list[str]:

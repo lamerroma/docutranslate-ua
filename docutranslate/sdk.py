@@ -39,7 +39,7 @@ _WORKFLOW_MAPPINGS = {
     "html": {"html": ("save_as_html", "html")},
 }
 
-# 每种工作流支持的输出格式列表
+# 每种робочий процес支持的输出格式列表
 _WORKFLOW_SUPPORTED_FORMATS = {
     wf: list(formats.keys()) for wf, formats in _WORKFLOW_MAPPINGS.items()
 }
@@ -47,7 +47,7 @@ _WORKFLOW_SUPPORTED_FORMATS = {
 
 class TranslationResult:
     """
-    封装翻译结果，负责后续的保存或导出操作。
+    封装翻译结果，负责后续的保存或导出操作.
     """
 
     def __init__(self, workflow: Any, workflow_type: str, original_filename: str):
@@ -59,7 +59,7 @@ class TranslationResult:
 
     @property
     def supported_formats(self) -> List[str]:
-        """获取当前工作流支持的输出格式"""
+        """获取当前робочий процес支持的输出格式"""
         return self._supported_formats
 
     def save(
@@ -69,22 +69,22 @@ class TranslationResult:
             fmt: Optional[str] = None
     ) -> str:
         """
-        保存结果到文件系统。
+        保存结果到файл系统.
 
-        :param output_dir: 输出目录。
-        :param name: 文件名 (如 'result.html')。若为 None，使用原文件名 + 对应后缀。
-        :param fmt: 输出格式 (如 'html', 'markdown', 'markdown_zip')。
-                    若为 None，使用工作流默认格式。
-        :return: 保存文件的完整路径 (仅供参考)。
+        :param output_dir: 输出目录.
+        :param name: файл名 (如 'result.html').若为 None，使用原файл名 + 对应后缀.
+        :param fmt: 输出格式 (如 'html', 'markdown', 'markdown_zip').
+                    若为 None，使用робочий процес默认格式.
+        :return: 保存файл的完整路径 (仅供参考).
         """
         if not self._mapping:
-            raise ValueError(f"工作流 {self._workflow_type} 不支持自动保存")
+            raise ValueError(f"робочий процес {self._workflow_type} 不支持自动保存")
 
         # 确定使用的格式
         if fmt:
             if fmt not in self._mapping:
                 raise ValueError(
-                    f"格式 '{fmt}' 不支持。可用格式: {self._supported_formats}"
+                    f"格式 '{fmt}' 不支持.可用格式: {self._supported_formats}"
                 )
             method_name, default_suffix = self._mapping[fmt]
         else:
@@ -92,7 +92,7 @@ class TranslationResult:
             fmt = self._supported_formats[0]
             method_name, default_suffix = self._mapping[fmt]
 
-        # 生成文件名
+        # 生成файл名
         if not name:
             base_name = os.path.splitext(self._original_filename)[0]
             name = f"{base_name}.{default_suffix}"
@@ -107,19 +107,19 @@ class TranslationResult:
 
     def export(self, fmt: Optional[str] = None) -> str:
         """
-        导出为 Base64 编码的字符串 (用于 API 传输或无需落盘的场景)。
+        导出为 Base64 编码的символів串 (用于 API 传输或无需落盘的场景).
 
-        :param fmt: 输出格式。若为 None，使用工作流默认格式。
-        :return: Base64 编码的结果。
+        :param fmt: 输出格式.若为 None，使用робочий процес默认格式.
+        :return: Base64 编码的结果.
         """
         if not self._mapping:
-            raise ValueError(f"工作流 {self._workflow_type} 不支持导出")
+            raise ValueError(f"робочий процес {self._workflow_type} 不支持导出")
 
         # 确定使用的格式
         if fmt:
             if fmt not in self._mapping:
                 raise ValueError(
-                    f"格式 '{fmt}' 不支持。可用格式: {self._supported_formats}"
+                    f"格式 '{fmt}' 不支持.可用格式: {self._supported_formats}"
                 )
             export_key = fmt
         else:
@@ -127,7 +127,7 @@ class TranslationResult:
             fmt = self._supported_formats[0]
             export_key = fmt
 
-        # 构建方法名
+        # Будую方法名
         if export_key == "markdown_zip":
             method_name = "export_to_markdown_zip"
         else:
@@ -149,7 +149,7 @@ class TranslationResult:
 
 class Client:
     """
-    DocuTranslate SDK。
+    DocuTranslate SDK.
     """
 
     def __init__(
@@ -171,8 +171,8 @@ class Client:
             **kwargs
     ):
         """
-        初始化 SDK 实例。
-        此处设置的参数将作为全局默认值，可在调用 translate 时被覆盖。
+        初始化 SDK 实例.
+        此处设置的参数将作为全局默认值，可在调用 translate 时被覆盖.
         """
         self.defaults = {
             "api_key": api_key, "base_url": base_url, "model_id": model_id,
@@ -244,7 +244,7 @@ class Client:
             **kwargs
     ) -> TranslationResult:
         """
-        同步执行翻译。参数说明请参考 translate_async。
+        同步执行翻译.参数说明请参考 translate_async.
         """
         # 获取当前函数的所有参数（这包含了你传入的 api_key, model_id 等）
         # 排除掉 self，剩下的就是传给 async 函数的参数
@@ -330,19 +330,19 @@ class Client:
             **kwargs
     ) -> TranslationResult:
         """
-        异步执行翻译任务。
+        异步执行翻译任务.
 
-        :param file_path: 输入文件路径 (必需)。
-        :param workflow_type: 工作流类型 (auto, docx, markdown_based, xlsx, json, txt)。
-        :param skip_translate: 若为 True，仅进行解析/OCR，不调用 LLM 翻译。
-        :param concurrent: LLM 请求并发数。
-        :param json_paths: [Json专用] JsonPath 列表 (如 '$.data.*')。
-        :param translate_regions: [Excel专用] 翻译区域 (如 'Sheet1!A1:B10')。
-        :param insert_mode: [Docx/Xlsx/Txt] 译文插入模式 (replace, append, prepend)。
-        :param convert_engine: [PDF/OCR] 解析引擎 (mineru, docling)。
-        :param mineru_token: [Mineru Cloud] API Token。
-        :param mineru_deploy_base_url: [Mineru Local] 本地服务地址。
-        :param office_password: [Docx/Xlsx专用] 用于解密加密文件的密码。
+        :param file_path: 输入файл路径 (必需).
+        :param workflow_type: робочий процес类型 (auto, docx, markdown_based, xlsx, json, txt).
+        :param skip_translate: 若为 True，仅进行解析/OCR，不调用 LLM 翻译.
+        :param concurrent: LLM 请求并发数.
+        :param json_paths: [Json专用] JsonPath 列表 (如 '$.data.*').
+        :param translate_regions: [Excel专用] 翻译区域 (如 'Sheet1!A1:B10').
+        :param insert_mode: [Docx/Xlsx/Txt] 译文插入模式 (replace, append, prepend).
+        :param convert_engine: [PDF/OCR] 解析引擎 (mineru, docling).
+        :param mineru_token: [Mineru Cloud] API Token.
+        :param mineru_deploy_base_url: [Mineru Local] 本地服务地址.
+        :param office_password: [Docx/Xlsx专用] 用于解密加密файл的密码.
         """
 
         # 1. 获取所有参数
@@ -356,10 +356,10 @@ class Client:
         # 2. 参数层级合并
         final_params = {**default_params, **self.defaults, **call_params}
 
-        # 3. 文件校验
+        # 3. файл校验
         path_obj = Path(file_path)
         if not path_obj.exists():
-            raise FileNotFoundError(f"文件不存在: {file_path}")
+            raise FileNotFoundError(f"файл不存在: {file_path}")
 
         # 4. 自动检测 Workflow 类型
         if final_params.get("workflow_type", "auto") == "auto":

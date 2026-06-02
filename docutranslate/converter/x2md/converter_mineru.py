@@ -62,8 +62,8 @@ class ConverterMineru(X2MarkdownConverter):
         self.formula = config.formula_ocr
         self.model_version = config.model_version
         self.attachments: list[AttachMent] = []
-        self.max_pages = 200  # 每个切片最大页数
-        self.max_size_mb = 200  # 每个切片最大文件大小 (MB)
+        self.max_pages = 200  # 每个Шматок最大页数
+        self.max_size_mb = 200  # 每个Шматок最大файл大小 (MB)
 
     def _get_header(self):
         return {
@@ -84,12 +84,12 @@ class ConverterMineru(X2MarkdownConverter):
 
     def _split_pdf(self, content: bytes) -> List[bytes]:
         """
-        检查 PDF 页数和文件大小，如果超过限制则进行拆分。
-        每个切片 <= 200页 且 <= 200MB。
-        返回拆分后的 bytes 列表。如果不超限，返回包含原内容的单元素列表。
+        检查 PDF 页数和файл大小，如果超过限制则进行拆分.
+        每个Шматок <= 200页 且 <= 200MB.
+        返回拆分后的 bytes 列表.如果不超限，返回包含原内容的单元素列表.
         """
         if not HAS_PYPDF:
-            self.logger.warning("未安装 pypdf，无法进行 PDF 页数检查和拆分。如果文件超过限制可能会失败。")
+            self.logger.warning("pypdf не встановлено, перевірка/розбиття PDF недоступні. Якщо файл перевищує ліміти, може впасти.")
             return [content]
 
         max_size_bytes = self.max_size_mb * 1024 * 1024
@@ -103,16 +103,16 @@ class ConverterMineru(X2MarkdownConverter):
             if total_pages <= self.max_pages and original_size <= max_size_bytes:
                 return [content]
 
-            self.logger.info(f"PDF 需要拆分: {total_pages}页, {original_size / 1024 / 1024:.1f}MB (限制: {self.max_pages}页, {self.max_size_mb}MB)")
+            self.logger.info(f"PDF потрібно розбити: {total_pages}стор., {original_size / 1024 / 1024:.1f}MB (ліміт: {self.max_pages}стор., {self.max_size_mb}MB)")
             chunks = []
 
             start_page = 0
             while start_page < total_pages:
-                # 尝试找到最大的 end_page，使得切片既不超过页数限制，也不超过大小限制
+                # 尝试找到最大的 end_page，使得Шматок既不超过页数限制，也不超过大小限制
                 # 先按最大页数尝试
                 tentative_end = min(start_page + self.max_pages, total_pages)
 
-                # 使用二分查找找到合适的切片大小
+                # 使用二分查找找到合适的Шматок大小
                 best_end = start_page + 1
                 low = start_page + 1
                 high = tentative_end
@@ -131,7 +131,7 @@ class ConverterMineru(X2MarkdownConverter):
                     else:
                         high = mid - 1
 
-                # 使用找到的 best_end 创建切片
+                # 使用找到的 best_end 创建Шматок
                 writer = PdfWriter()
                 for page_num in range(start_page, best_end):
                     writer.add_page(reader.pages[page_num])
@@ -141,20 +141,20 @@ class ConverterMineru(X2MarkdownConverter):
                     chunks.append(chunk_content)
                     chunk_size_mb = len(chunk_content) / 1024 / 1024
                     page_range = f"页 {start_page + 1}-{best_end}" if best_end > start_page + 1 else f"页 {start_page + 1}"
-                    self.logger.info(f"  切片 {len(chunks)}: {page_range}, {chunk_size_mb:.1f}MB")
+                    self.logger.info(f"  Шматок {len(chunks)}: {page_range}, {chunk_size_mb:.1f}MB")
 
                     # 如果单页就超过大小限制，发出警告
                     if best_end == start_page + 1 and chunk_size_mb > self.max_size_mb:
-                        self.logger.warning(f"    警告: 第 {start_page + 1} 页大小 ({chunk_size_mb:.1f}MB) 超过单文件限制 ({self.max_size_mb}MB)，仍将尝试上传")
+                        self.logger.warning(f"    Увага: стор. {start_page + 1} розмір ({chunk_size_mb:.1f}MB) перевищує ліміт одного файлу ({self.max_size_mb}MB), все одно пробую завантажити")
 
                 start_page = best_end
 
-            self.logger.info(f"PDF 已拆分为 {len(chunks)} 个部分。")
+            self.logger.info(f"PDF розбито на {len(chunks)} частин.")
             return chunks
 
         except Exception as e:
-            self.logger.error(f"PDF 拆分失败: {e}")
-            # 如果拆分出错，尝试按原文件上传（兜底）
+            self.logger.error(f"Не вдалось розбити PDF: {e}")
+            # 如果拆分出错，尝试按原файл上传（兜底）
             return [content]
 
     def upload(self, document: Document):
@@ -224,7 +224,7 @@ class ConverterMineru(X2MarkdownConverter):
         处理单个分片：构造Document -> 上传 -> 等待 -> 下载 -> 提取 Markdown
         """
         # 根据 Document 类的定义，name 是属性，由 stem+suffix 组成
-        # 所以我们需要构造正确的 stem 来改变文件名
+        # 所以我们需要构造正确的 stem 来改变файл名
         new_stem = original_doc.stem
         if index > 0:
             new_stem = f"{original_doc.stem}_part{index}"
@@ -253,7 +253,7 @@ class ConverterMineru(X2MarkdownConverter):
         return md_content, mineru_parsed
 
     def convert(self, document: Document) -> MarkdownDocument:
-        self.logger.info(f"正在将文档转换为markdown,model_version:{self.model_version}")
+        self.logger.info(f"Конвертую документ у markdown,model_version:{self.model_version}")
         time1 = time.time()
 
         # 1. 检查是否需要拆分 (仅针对 PDF)
@@ -269,7 +269,7 @@ class ConverterMineru(X2MarkdownConverter):
         # 2. 依次处理每个分片
         for i, chunk_content in enumerate(chunks):
             if is_split:
-                self.logger.info(f"正在处理分片 {i + 1}/{len(chunks)}...")
+                self.logger.info(f"Обробка частини {i + 1}/{len(chunks)}...")
 
             md_content, mineru_parsed = self._process_single_chunk(chunk_content, document, i)
             combined_md.append(md_content)
@@ -285,13 +285,13 @@ class ConverterMineru(X2MarkdownConverter):
         # 3. 合并 Markdown
         final_content = "\n\n".join(combined_md)
 
-        self.logger.info(f"已转换为markdown，耗时{time.time() - time1}秒")
+        self.logger.info(f"Документ конвертовано у markdown, тривалість{time.time() - time1}сек")
         md_document = MarkdownDocument.from_bytes(content=final_content.encode("utf-8"), suffix=".md",
                                                   stem=document.stem)
         return md_document
 
     async def convert_async(self, document: Document) -> MarkdownDocument:
-        self.logger.info(f"正在将文档转换为markdown (Async), model_version:{self.model_version}")
+        self.logger.info(f"Конвертую документ у markdown (Async), model_version:{self.model_version}")
         time1 = time.time()
 
         # 1. 检查是否需要拆分
@@ -326,7 +326,7 @@ class ConverterMineru(X2MarkdownConverter):
         # 3. 合并 Markdown
         final_content = "\n\n".join(combined_md)
 
-        self.logger.info(f"已转换为markdown，耗时{time.time() - time1}秒")
+        self.logger.info(f"Документ конвертовано у markdown, тривалість{time.time() - time1}сек")
         md_document = MarkdownDocument.from_bytes(content=final_content.encode("utf-8"), suffix=".md",
                                                   stem=document.stem)
         return md_document
@@ -341,34 +341,34 @@ def get_md_from_zip_url_with_inline_images(
         encoding: str = "utf-8"
 ) -> tuple[str, bytes]:
     """
-    从给定的ZIP文件URL中下载并提取指定文件的内容，
-    并将Markdown文件中的相对路径图片转换为内联Base64图片。
+    从给定的ZIPфайлURL中下载并提取指定файл的内容，
+    并将Markdownфайл中的相对路径图片转换为内联Base64图片.
     """
     try:
-        # print(f"正在从 {zip_url} 下载ZIP文件 (使用 httpx.get)...")
+        # print(f"正在从 {zip_url} 下载ZIPфайл (使用 httpx.get)...")
         response = client.get(zip_url)  # 增加超时
         response.raise_for_status()
-        # print("ZIP文件下载完成。")
+        # print("ZIPфайл下载完成.")
         md_content = embed_inline_image_from_zip(response.content, filename_in_zip=filename_in_zip,
                                            encoding=encoding)
         if md_content is None:
-            raise Exception("无法从 ZIP 中提取 Markdown 文件")
+            raise Exception("无法从 ZIP 中提取 Markdown файл")
         return md_content, response.content
 
 
     except httpx.HTTPStatusError as e:
         raise Exception(
-            f"HTTP 错误 (httpx): {e.response.status_code} - {e.request.url}\n响应内容: {e.response.text[:200]}...")
+            f"HTTP помилка (httpx): {e.response.status_code} - {e.request.url}\n响应内容: {e.response.text[:200]}...")
     except httpx.RequestError as e:
-        raise Exception(f"下载ZIP文件时发生错误 (httpx): {e}")
+        raise Exception(f"下载ZIPфайл时发生помилка (httpx): {e}")
     except zipfile.BadZipFile:
-        raise Exception("错误: 下载的文件不是一个有效的ZIP压缩文件或已损坏。")
+        raise Exception("помилка: 下载的файл不是一个有效的ZIP压缩файл或已损坏.")
     except UnicodeDecodeError:
-        raise Exception(f"错误: 无法使用 '{encoding}' 编码解码文件 '{filename_in_zip}' 的内容。")
+        raise Exception(f"помилка: 无法使用 '{encoding}' 编码декодування файлу '{filename_in_zip}' 的内容.")
     except Exception as e:
         import traceback
         traceback.print_exc()  # 打印完整的堆栈跟踪，便于调试
-        raise Exception(f"发生未知错误: {e}")
+        raise Exception(f"发生未知помилка: {e}")
 
 
 async def get_md_from_zip_url_with_inline_images_async(
@@ -377,34 +377,34 @@ async def get_md_from_zip_url_with_inline_images_async(
         encoding: str = "utf-8"
 ) -> tuple[str, bytes]:
     """
-    从给定的ZIP文件URL中下载并提取指定文件的内容，
-    并将Markdown文件中的相对路径图片转换为内联Base64图片。
+    从给定的ZIPфайлURL中下载并提取指定файл的内容，
+    并将Markdownфайл中的相对路径图片转换为内联Base64图片.
     """
     try:
-        # print(f"正在从 {zip_url} 下载ZIP文件 (使用 httpx.get)...")
+        # print(f"正在从 {zip_url} 下载ZIPфайл (使用 httpx.get)...")
         response = await client_async.get(zip_url)  # 增加超时
         response.raise_for_status()
-        # print("ZIP文件下载完成。")
+        # print("ZIPфайл下载完成.")
         md_content = await asyncio.to_thread(embed_inline_image_from_zip, response.content, filename_in_zip=filename_in_zip,
                                        encoding=encoding)
         if md_content is None:
-            raise Exception("无法从 ZIP 中提取 Markdown 文件")
+            raise Exception("无法从 ZIP 中提取 Markdown файл")
         return md_content, response.content
 
 
     except httpx.HTTPStatusError as e:
         raise Exception(
-            f"HTTP 错误 (httpx): {e.response.status_code} - {e.request.url}\n响应内容: {e.response.text[:200]}...")
+            f"HTTP помилка (httpx): {e.response.status_code} - {e.request.url}\n响应内容: {e.response.text[:200]}...")
     except httpx.RequestError as e:
-        raise Exception(f"下载ZIP文件时发生错误 (httpx): {e}")
+        raise Exception(f"下载ZIPфайл时发生помилка (httpx): {e}")
     except zipfile.BadZipFile:
-        raise Exception("错误: 下载的文件不是一个有效的ZIP压缩文件或已损坏。")
+        raise Exception("помилка: 下载的файл不是一个有效的ZIP压缩файл或已损坏.")
     except UnicodeDecodeError:
-        raise Exception(f"错误: 无法使用 '{encoding}' 编码解码文件 '{filename_in_zip}' 的内容。")
+        raise Exception(f"помилка: 无法使用 '{encoding}' 编码декодування файлу '{filename_in_zip}' 的内容.")
     except Exception as e:
         import traceback
         traceback.print_exc()  # 打印完整的堆栈跟踪，便于调试
-        raise Exception(f"发生未知错误: {e}")
+        raise Exception(f"发生未知помилка: {e}")
 
 
 if __name__ == '__main__':

@@ -41,24 +41,24 @@ def _parse_response_json(response: httpx.Response) -> dict:
         json.JSONDecodeError: 如果响应无法解析为 JSON
     """
     text = response.text
-    # 跳过开头的空行和空白字符，找到第一个非空白字符
+    # 跳过开头的空行和空白символів，找到第一个非空白символів
     # 这可以处理 DeepSeek API 返回的前缀空行
     stripped_text = text.lstrip()
     if not stripped_text:
         raise json.JSONDecodeError("Expecting value", text, 0)
-    # 从第一个非空白字符开始解析
+    # 从第一个非空白символів开始解析
     return json.loads(stripped_text)
 
 
 class AgentResultError(ValueError):
-    """一个特殊的异常，用于表示结果由AI正常返回，但返回的结果有问题。该错误不计入总错误数"""
+    """一个特殊的异常，用于表示结果由AI正常返回，但返回的结果有问题.该помилка不计入总помилка数"""
 
     def __init__(self, message):
         super().__init__(message)
 
 
 class PartialAgentResultError(ValueError):
-    """一个特殊的异常，用于表示结果不完整但包含了部分成功的数据，以便触发重试。该错误不计入总错误数"""
+    """一个特殊的异常，用于表示结果不完整但包含了部分成功的数据，以便触发重试.该помилка不计入总помилка数"""
 
     def __init__(self, message, partial_result: dict, append_prompt: str = None):
         super().__init__(message)
@@ -84,7 +84,7 @@ class AgentConfig:
     tpm: int | None = None  # 每分钟Token数限制
     provider: ProviderType | None = None
     progress_callback: Callable[[int,int],None]|None = None  # 进度回调 (current: int, total: int) -> None
-    extra_body: str | None = None  # JSON字符串格式的额外请求体参数
+    extra_body: str | None = None  # JSONсимволів串格式的额外请求体参数
 
 
 class TotalErrorCounter:
@@ -98,7 +98,7 @@ class TotalErrorCounter:
         with self.lock:
             self.count += 1
             if self.count > self.max_errors_count:
-                self.logger.info(f"错误响应过多")
+                self.logger.info(f"Забагато помилкових відповідей")
             return self.reach_limit()
 
     def reach_limit(self):
@@ -115,14 +115,14 @@ class PromptsCounter:
     def add(self):
         with self.lock:
             self.count += 1
-            self.logger.info(f"多线程-已完成：{self.count}/{self.total}")
+            self.logger.info(f"Багатопоточно — виконано：{self.count}/{self.total}")
 
 
 # --- 新增 RateLimiter 类 ---
 class RateLimiter:
     """
-    基于滑动窗口的速率限制器，支持 RPM 和 TPM 控制。
-    同时支持 Async 和 Sync 调用。
+    基于滑动窗口的速率限制器，支持 RPM 和 TPM 控制.
+    同时支持 Async 和 Sync 调用.
     """
 
     def __init__(self, rpm: int | None, tpm: int | None):
@@ -134,7 +134,7 @@ class RateLimiter:
         self.lock = Lock()  # 用于同步模式和保护共享数据
 
     def _cleanup_window(self, now: float):
-        """清理60秒窗口之前的数据"""
+        """清理60сек窗口之前的数据"""
         window_start = now - 60.0
 
         while self.request_timestamps and self.request_timestamps[0] <= window_start:
@@ -144,7 +144,7 @@ class RateLimiter:
             self.token_timestamps.popleft()
 
     def _check_and_get_wait_time(self, tokens: int) -> float:
-        """检查是否满足限制，返回需要等待的秒数。如果不需等待返回 0"""
+        """检查是否满足限制，返回需要等待的сек数.如果不需等待返回 0"""
         now = time.time()
         self._cleanup_window(now)
 
@@ -365,22 +365,22 @@ class Agent:
 
     def _estimate_tokens(self, text: str) -> int:
         """
-        改进的纯 Python 估算，适配更多语言。
+        改进的纯 Python 估算，适配更多语言.
         """
         if not text:
             return 0
 
         total_len = len(text)
 
-        # 统计复杂字符数量 (CJK, 俄语, 阿拉伯语等)
+        # 统计复杂символів数量 (CJK, 俄语, 阿拉伯语等)
         complex_char_count = len(_COMPLEX_SCRIPT_PATTERN.findall(text))
 
-        # 简单的 ASCII 或拉丁字符
+        # 简单的 ASCII 或拉丁символів
         simple_char_count = total_len - complex_char_count
 
         # 权重设定：
-        # 复杂字符：保守估计 1.0 (GPT-4o 对中文优化很好，约为0.6-0.7，但为了限流安全，建议设高一点)
-        # 简单字符：0.3 (英文平均 1个token ≈ 3.5字符)
+        # 复杂символів：保守估计 1.0 (GPT-4o 对中文优化很好，约为0.6-0.7，但为了限流安全，建议设高一点)
+        # 简单символів：0.3 (英文平均 1个token ≈ 3.5символів)
         # 额外：加上消息的固定开销 (Message Overhead)，通常每条消息有 3-4 个 token 的系统开销
 
         estimated = (complex_char_count * 1.0) + (simple_char_count * 0.3)
@@ -390,30 +390,30 @@ class Agent:
 
     def _sanitize_result(self, text: str) -> str:
         """
-        清理响应内容：如果内容以 <think>...</think> 开头，移除该部分。
-        使用 DOTALL 模式以匹配跨行的 thinking 内容。
+        清理响应内容：如果内容以 <think>...</think> 开头，移除该部分.
+        使用 DOTALL 模式以匹配跨行的 thinking 内容.
         """
         if not text:
             return text
-        # 匹配开头的 <think> 标签块，允许标签前后有空白字符
+        # 匹配开头的 <think> 标签块，允许标签前后有空白символів
         # .*? 非贪婪匹配，确保只匹配第一个闭合标签
         return re.sub(r'^\s*<think>.*?</think>', '', text, flags=re.DOTALL)
 
     def get_continue_prompt(self, accumulated_result: str, prompt: str) -> str:
         """
-        获取继续获取时的提示词。
-        子类可以重写此方法来自定义继续获取的行为。
+        获取继续获取时的提示词.
+        子类可以重写此方法来自定义继续获取的行为.
 
-        默认行为：直接拼接内容，让模型继续输出。
+        默认行为：直接拼接内容，让模型继续输出.
         """
-        return f"{prompt}\n\n[系统提示：请继续完成之前的响应。之前已输出内容为：\n---\n{accumulated_result}\n---\n请从中断处继续输出剩余内容。]"
+        return f"{prompt}\n\n[系统提示：请继续完成之前的响应.之前已输出内容为：\n---\n{accumulated_result}\n---\n请从中断处继续输出剩余内容.]"
 
     def merge_continue_result(self, accumulated_result: str, additional_result: str) -> str:
         """
-        合并继续获取的结果。
-        子类可以重写此方法来处理追加模式的数组合并。
+        合并继续获取的结果.
+        子类可以重写此方法来处理追加模式的数组合并.
 
-        默认行为：直接拼接字符串。
+        默认行为：直接拼接символів串.
         """
         return accumulated_result + additional_result
 
@@ -493,14 +493,14 @@ class Agent:
             continue_count: int = 0,
     ) -> Any:
         """
-        当 finish_reason 为 length 时，继续获取剩余内容。
-        注意：很多 API 并不支持这种"继续获取"模式，可能直接返回 stop 或不返回 length。
-        本方法具有退化机制：如果 API 不支持继续获取，会返回已累计的结果。
-        最多继续获取 MAX_CONTINUE_FETCHES 次，防止无限循环。
+        当 finish_reason 为 length 时，继续获取剩余内容.
+        注意：很多 API 并不支持这种"继续获取"模式，可能直接返回 stop 或不返回 length.
+        本方法具有退化机制：如果 API 不支持继续获取，会返回已累计的结果.
+        最多继续获取 MAX_CONTINUE_FETCHES 次，防止无限循环.
         """
         if continue_count >= MAX_CONTINUE_FETCHES:
             self.logger.warning(
-                f"已达到最大继续获取次数 ({MAX_CONTINUE_FETCHES})，返回已累计结果 ({len(accumulated_result)} 字符)")
+                f"已达到最大继续获取次数 ({MAX_CONTINUE_FETCHES})，返回已累计结果 ({len(accumulated_result)} символів)")
             # 移除可能存在的 <think> 块
             accumulated_result = self._sanitize_result(accumulated_result)
             return (
@@ -510,7 +510,7 @@ class Agent:
             )
 
         self.logger.info(
-            f"继续获取剩余内容 (已累计 {len(accumulated_result)} 字符, 第 {continue_count + 1}/{MAX_CONTINUE_FETCHES} 次)...")
+            f"继续获取剩余内容 (已累计 {len(accumulated_result)} символів, 第 {continue_count + 1}/{MAX_CONTINUE_FETCHES} 次)...")
 
         # 构造继续请求的提示
         # 调用子类的 get_continue_prompt 方法，允许子类自定义继续获取的行为
@@ -538,8 +538,8 @@ class Agent:
             # 安全提取 choices 和 content
             choices = response_data.get("choices", [])
             if not choices:
-                self.logger.error(f"API响应中未找到 choices 字段")
-                raise ValueError("API响应格式错误：缺少 choices 字段")
+                self.logger.error(f"У відповіді API не знайдено поля choices")
+                raise ValueError("API响应格式помилка：缺少 choices 字段")
 
             choice = choices[0]
             finish_reason = choice.get("finish_reason", None)
@@ -580,21 +580,21 @@ class Agent:
                 )
             except PartialAgentResultError as e:
                 # 继续获取成功但结果部分不完整，返回已合并的部分结果
-                self.logger.warning(f"继续获取完成但结果部分不完整: {e}")
+                self.logger.warning(f"Дотягування завершено, але результат частково неповний: {e}")
                 if e.partial_result:
                     return e.partial_result
                 # 如果没有部分结果，尝试从已获取的内容中解析
                 return accumulated_result
             except AgentResultError as e:
                 # 继续获取成功但结果完全无效
-                self.logger.warning(f"继续获取完成但结果无效: {e}")
+                self.logger.warning(f"Дотягування завершено, але результат недійсний: {e}")
                 return accumulated_result
 
         except (httpx.HTTPStatusError, httpx.RequestError, KeyError, IndexError, ValueError) as e:
-            self.logger.error(f"继续获取内容失败: {repr(e)}")
+            self.logger.error(f"Дотягування контенту не вдалось: {repr(e)}")
             # 退化：返回已获取的部分结果，而不是报错
             if accumulated_result:
-                self.logger.warning(f"API不支持继续获取，返回已获取的部分结果 ({len(accumulated_result)} 字符)")
+                self.logger.warning(f"API не підтримує дотягування, повертаю отриману частину ({len(accumulated_result)} символів)")
                 # 即使是部分结果，也尝试清理一下
                 accumulated_result = self._sanitize_result(accumulated_result)
                 return (
@@ -602,7 +602,7 @@ class Agent:
                     if result_handler is None
                     else result_handler(accumulated_result, prompt, self.logger)
                 )
-            # 如果没有部分结果，调用错误处理器
+            # 如果没有部分结果，调用помилка处理器
             return (
                 prompt
                 if error_result_handler is None
@@ -652,8 +652,8 @@ class Agent:
             # 检查 finish_reason
             choices = response_data.get("choices", [])
             if not choices:
-                self.logger.error(f"API响应中未找到 choices 字段")
-                raise ValueError("API响应格式错误：缺少 choices 字段")
+                self.logger.error(f"У відповіді API не знайдено поля choices")
+                raise ValueError("API响应格式помилка：缺少 choices 字段")
 
             finish_reason = choices[0].get("finish_reason", None)
             result = choices[0].get("message", {}).get("content", "")
@@ -664,7 +664,7 @@ class Agent:
                 pass
             elif finish_reason == "length":
                 # 长度限制，尝试继续获取
-                self.logger.warning(f"响应因长度限制被截断，尝试继续获取...")
+                self.logger.warning(f"Відповідь обрізана через ліміт довжини, пробую дотягнути...")
                 # 注意：这里传入原始result，清理工作在 _continue_fetch_async 最终返回时统一处理
                 return await self._continue_fetch_async(
                     client=client,
@@ -679,7 +679,7 @@ class Agent:
                 )
             elif finish_reason in ("tool_calls", "function_call"):
                 # 工具调用场景，当前代码可能不支持，直接返回已获取结果
-                self.logger.warning(f"finish_reason 为 '{finish_reason}'，当前不支持工具调用，返回已获取内容")
+                self.logger.warning(f"finish_reason = '{finish_reason}', виклики інструментів зараз не підтримуються, повертаю отриманий контент")
                 result = self._sanitize_result(result)
                 return result if result else (
                     prompt if error_result_handler is None
@@ -687,14 +687,14 @@ class Agent:
                 )
             elif finish_reason == "content_filter":
                 # 内容被过滤
-                self.logger.error(f"响应内容被过滤")
+                self.logger.error(f"Контент відповіді відфільтровано")
                 raise ValueError("内容被过滤")
             elif finish_reason is None:
                 # 某些 API 可能不返回 finish_reason，将其视为正常结束
-                self.logger.warning(f"API未返回 finish_reason，视为正常结束")
+                self.logger.warning(f"API не повернув finish_reason, вважаю нормальним завершенням")
             else:
-                # 其他未知的 finish_reason，记录警告并返回结果
-                self.logger.warning(f"未知的 finish_reason: '{finish_reason}'，返回已获取内容")
+                # 其他Невідомий finish_reason，记录警告并返回结果
+                self.logger.warning(f"Невідомий finish_reason: '{finish_reason}', повертаю отриманий контент")
 
             input_tokens, cached_tokens, output_tokens, reasoning_tokens, api_total_tokens = (
                 extract_token_info(response_data)
@@ -705,7 +705,7 @@ class Agent:
             )
 
             if retry_count > 0:
-                self.logger.info(f"重试成功 (第 {retry_count}/{self.retry} 次尝试)。")
+                self.logger.info(f"Повтор успішний (спроба {retry_count}/{self.retry} ).")
 
             # 清理 <think> 标签后再处理结果
             result = self._sanitize_result(result)
@@ -717,10 +717,10 @@ class Agent:
             )
 
         except AgentResultError as e:
-            self.logger.error(f"AI返回结果有误: {e}")
+            self.logger.error(f"AI повернув некоректний результат: {e}")
             should_retry = True
         except PartialAgentResultError as e:
-            self.logger.error(f"收到部分返回结果，将尝试重试: {e}")
+            self.logger.error(f"Отримано частковий результат, пробую повтор: {e}")
             current_partial_result = e.partial_result
             should_retry = True
             if e.append_prompt:
@@ -728,30 +728,30 @@ class Agent:
 
         except httpx.HTTPStatusError as e:
             self.logger.error(
-                f"AI请求HTTP状态错误 (async): {e.response.status_code} - {e.response.text}"
+                f"AI请求HTTP状态помилка (async): {e.response.status_code} - {e.response.text}"
             )
             should_retry = True
             is_hard_error = True
-            # 如果是因为 Rate Limit (429) 错误，最好在这里多睡一会儿，虽然我们有了本地 Limiter
+            # 如果是因为 Rate Limit (429) помилка，最好在这里多睡一会儿，虽然我们有了本地 Limiter
             if e.response.status_code == 429:
                 await asyncio.sleep(5)
 
         except httpx.RequestError as e:
-            # 根据错误类型给出更清晰的提示
+            # 根据помилка类型给出更清晰的提示
             if isinstance(e, httpx.ReadError):
-                self.logger.error(f"AI请求读取响应失败 (async): {type(e).__name__}: {e} (可能是服务器关闭连接或网络中断)")
+                self.logger.error(f"Не вдалось прочитати відповідь AI (async): {type(e).__name__}: {e} (можливо, сервер закрив з'єднання або мережа обірвалась)")
             elif isinstance(e, httpx.ConnectError):
-                self.logger.error(f"AI请求连接失败 (async): {type(e).__name__}: {e} (无法连接到服务器，请检查网络或base_url)")
+                self.logger.error(f"Не вдалось підключитись до AI (async): {type(e).__name__}: {e} (не вдається підключитись, перевірте мережу або base_url)")
             elif isinstance(e, httpx.WriteError):
-                self.logger.error(f"AI请求发送数据失败 (async): {type(e).__name__}: {e}")
+                self.logger.error(f"Не вдалось надіслати дані до AI (async): {type(e).__name__}: {e}")
             elif isinstance(e, httpx.TimeoutException):
-                self.logger.error(f"AI请求超时 (async): {type(e).__name__}: {e} (请求超过{self.timeout}秒未完成)")
+                self.logger.error(f"Запит до AI вичерпав час очікування (async): {type(e).__name__}: {e} (запит перевищив{self.timeout}сек без завершення)")
             else:
-                self.logger.error(f"AI请求连接错误 (async): {type(e).__name__}: {e}")
+                self.logger.error(f"Помилка підключення до AI (async): {type(e).__name__}: {e}")
             should_retry = True
             is_hard_error = True
         except (KeyError, IndexError, ValueError, json.JSONDecodeError) as e:
-            self.logger.error(f"AI响应格式或值错误 (async), 将尝试重试: {repr(e)}")
+            self.logger.error(f"Помилка формату або значення відповіді AI (async), пробую повтор: {repr(e)}")
             should_retry = True
             is_hard_error = True
 
@@ -762,7 +762,7 @@ class Agent:
             if is_hard_error:
                 if retry_count == 0:
                     if self.total_error_counter.add():
-                        self.logger.error("错误次数过多，已达到上限，不再重试。")
+                        self.logger.error("Забагато помилок, ліміт досягнуто, більше не повторюю.")
                         with self.unresolved_error_lock:
                             self.unresolved_error_count += 1
                         return (
@@ -775,7 +775,7 @@ class Agent:
                             )
                         )
                 elif self.total_error_counter.reach_limit():
-                    self.logger.error("错误次数过多，已达到上限，不再为该请求重试。")
+                    self.logger.error("Забагато помилок, ліміт досягнуто, для цього запиту повторів не буде.")
                     with self.unresolved_error_lock:
                         self.unresolved_error_count += 1
                     return (
@@ -788,7 +788,7 @@ class Agent:
                         )
                     )
 
-            self.logger.info(f"正在重试第 {retry_count + 1}/{self.retry} 次...")
+            self.logger.info(f"Повтор {retry_count + 1}/{self.retry} ...")
             # 指数退避
             await asyncio.sleep(0.5 * (2 ** retry_count))
             return await self.send_async(
@@ -805,12 +805,12 @@ class Agent:
             )
         else:
             if should_retry:
-                self.logger.error(f"所有重试均失败，已达到重试次数上限。")
+                self.logger.error(f"Усі повтори невдалі, ліміт спроб досягнуто.")
                 with self.unresolved_error_lock:
                     self.unresolved_error_count += 1
 
             if best_partial_result:
-                self.logger.info("所有重试失败，但存在部分翻译结果，将使用该结果。")
+                self.logger.info("Усі повтори невдалі, але є частковий переклад — використовую його.")
                 return best_partial_result
 
             return (
@@ -839,7 +839,7 @@ class Agent:
         self.logger.info(
             f"provider:{self.provider},base-url:{self.baseurl},model-id:{self.model_id},concurrent:{max_concurrent}{rpm_info}{tpm_info},temperature:{self.temperature},system_proxy:{self.system_proxy_enable},json_output:{force_json}"
         )
-        self.logger.info(f"预计发送{total}个请求")
+        self.logger.info(f"Очікувано надіслати{total}запитів")
 
         self.total_error_counter.max_errors_count = (
                 len(prompts) // MAX_REQUESTS_PER_ERROR
@@ -879,7 +879,7 @@ class Agent:
                     )
                     nonlocal count
                     count += 1
-                    self.logger.info(f"协程-已完成{count}/{total}")
+                    self.logger.info(f"Корутина — виконано{count}/{total}")
                     # 调用进度回调
                     if self.progress_callback:
                         self.progress_callback(count, total)
@@ -892,7 +892,7 @@ class Agent:
             results = await asyncio.gather(*tasks, return_exceptions=False)
 
             self.logger.info(
-                f"所有请求处理完毕。未解决的错误总数: {self.unresolved_error_count}"
+                f"所有请求处理完毕.未解决的помилка总数: {self.unresolved_error_count}"
             )
 
             token_stats = self.token_counter.get_stats()
@@ -918,14 +918,14 @@ class Agent:
             continue_count: int = 0,
     ) -> Any:
         """
-        当 finish_reason 为 length 时，继续获取剩余内容（同步版本）。
-        注意：很多 API 并不支持这种"继续获取"模式，可能直接返回 stop 或不返回 length。
-        本方法具有退化机制：如果 API 不支持继续获取，会返回已累计的结果。
-        最多继续获取 MAX_CONTINUE_FETCHES 次，防止无限循环。
+        当 finish_reason 为 length 时，继续获取剩余内容（同步版本）.
+        注意：很多 API 并不支持这种"继续获取"模式，可能直接返回 stop 或不返回 length.
+        本方法具有退化机制：如果 API 不支持继续获取，会返回已累计的结果.
+        最多继续获取 MAX_CONTINUE_FETCHES 次，防止无限循环.
         """
         if continue_count >= MAX_CONTINUE_FETCHES:
             self.logger.warning(
-                f"已达到最大继续获取次数 ({MAX_CONTINUE_FETCHES})，返回已累计结果 ({len(accumulated_result)} 字符)")
+                f"已达到最大继续获取次数 ({MAX_CONTINUE_FETCHES})，返回已累计结果 ({len(accumulated_result)} символів)")
             # 清理
             accumulated_result = self._sanitize_result(accumulated_result)
             return (
@@ -935,7 +935,7 @@ class Agent:
             )
 
         self.logger.info(
-            f"继续获取剩余内容 (已累计 {len(accumulated_result)} 字符, 第 {continue_count + 1}/{MAX_CONTINUE_FETCHES} 次)...")
+            f"继续获取剩余内容 (已累计 {len(accumulated_result)} символів, 第 {continue_count + 1}/{MAX_CONTINUE_FETCHES} 次)...")
 
         # 构造继续请求的提示
         # 调用子类的 get_continue_prompt 方法，允许子类自定义继续获取的行为
@@ -962,8 +962,8 @@ class Agent:
             # 安全提取 choices 和 content
             choices = response_data.get("choices", [])
             if not choices:
-                self.logger.error(f"API响应中未找到 choices 字段")
-                raise ValueError("API响应格式错误：缺少 choices 字段")
+                self.logger.error(f"У відповіді API не знайдено поля choices")
+                raise ValueError("API响应格式помилка：缺少 choices 字段")
 
             choice = choices[0]
             finish_reason = choice.get("finish_reason", None)
@@ -1003,21 +1003,21 @@ class Agent:
                 )
             except PartialAgentResultError as e:
                 # 继续获取成功但结果部分不完整，返回已合并的部分结果
-                self.logger.warning(f"继续获取完成但结果部分不完整: {e}")
+                self.logger.warning(f"Дотягування завершено, але результат частково неповний: {e}")
                 if e.partial_result:
                     return e.partial_result
                 # 如果没有部分结果，尝试从已获取的内容中解析
                 return accumulated_result
             except AgentResultError as e:
                 # 继续获取成功但结果完全无效
-                self.logger.warning(f"继续获取完成但结果无效: {e}")
+                self.logger.warning(f"Дотягування завершено, але результат недійсний: {e}")
                 return accumulated_result
 
         except (httpx.HTTPStatusError, httpx.RequestError, KeyError, IndexError, ValueError) as e:
-            self.logger.error(f"继续获取内容失败: {repr(e)}")
+            self.logger.error(f"Дотягування контенту не вдалось: {repr(e)}")
             # 退化：返回已获取的部分结果，而不是报错
             if accumulated_result:
-                self.logger.warning(f"API不支持继续获取，返回已获取的部分结果 ({len(accumulated_result)} 字符)")
+                self.logger.warning(f"API не підтримує дотягування, повертаю отриману частину ({len(accumulated_result)} символів)")
                 accumulated_result = self._sanitize_result(accumulated_result)
                 return (
                     accumulated_result
@@ -1070,8 +1070,8 @@ class Agent:
             # 检查 finish_reason
             choices = response_data.get("choices", [])
             if not choices:
-                self.logger.error(f"API响应中未找到 choices 字段")
-                raise ValueError("API响应格式错误：缺少 choices 字段")
+                self.logger.error(f"У відповіді API не знайдено поля choices")
+                raise ValueError("API响应格式помилка：缺少 choices 字段")
 
             finish_reason = choices[0].get("finish_reason", None)
             result = choices[0].get("message", {}).get("content", "")
@@ -1082,7 +1082,7 @@ class Agent:
                 pass
             elif finish_reason == "length":
                 # 长度限制，尝试继续获取
-                self.logger.warning(f"响应因长度限制被截断，尝试继续获取...")
+                self.logger.warning(f"Відповідь обрізана через ліміт довжини, пробую дотягнути...")
                 # 注意：这里传入原始result，清理工作在 _continue_fetch 最终返回时统一处理
                 return self._continue_fetch(
                     client=client,
@@ -1097,7 +1097,7 @@ class Agent:
                 )
             elif finish_reason in ("tool_calls", "function_call"):
                 # 工具调用场景，当前代码可能不支持，直接返回已获取结果
-                self.logger.warning(f"finish_reason 为 '{finish_reason}'，当前不支持工具调用，返回已获取内容")
+                self.logger.warning(f"finish_reason = '{finish_reason}', виклики інструментів зараз не підтримуються, повертаю отриманий контент")
                 result = self._sanitize_result(result)
                 return result if result else (
                     prompt if error_result_handler is None
@@ -1105,14 +1105,14 @@ class Agent:
                 )
             elif finish_reason == "content_filter":
                 # 内容被过滤
-                self.logger.error(f"响应内容被过滤")
+                self.logger.error(f"Контент відповіді відфільтровано")
                 raise ValueError("内容被过滤")
             elif finish_reason is None:
                 # 某些 API 可能不返回 finish_reason，将其视为正常结束
-                self.logger.warning(f"API未返回 finish_reason，视为正常结束")
+                self.logger.warning(f"API не повернув finish_reason, вважаю нормальним завершенням")
             else:
-                # 其他未知的 finish_reason，记录警告并返回结果
-                self.logger.warning(f"未知的 finish_reason: '{finish_reason}'，返回已获取内容")
+                # 其他Невідомий finish_reason，记录警告并返回结果
+                self.logger.warning(f"Невідомий finish_reason: '{finish_reason}', повертаю отриманий контент")
 
             input_tokens, cached_tokens, output_tokens, reasoning_tokens, api_total_tokens = (
                 extract_token_info(response_data)
@@ -1123,7 +1123,7 @@ class Agent:
             )
 
             if retry_count > 0:
-                self.logger.info(f"重试成功 (第 {retry_count}/{self.retry} 次尝试)。")
+                self.logger.info(f"Повтор успішний (спроба {retry_count}/{self.retry} ).")
 
             # 清理 <think> 标签后再处理结果
             result = self._sanitize_result(result)
@@ -1134,16 +1134,16 @@ class Agent:
                 else result_handler(result, prompt, self.logger)
             )
         except AgentResultError as e:
-            self.logger.error(f"AI返回结果有误: {e}")
+            self.logger.error(f"AI повернув некоректний результат: {e}")
             should_retry = True
         except PartialAgentResultError as e:
-            self.logger.error(f"收到部分翻译结果，将尝试重试: {e}")
+            self.logger.error(f"Отримано частковий переклад, пробую повтор: {e}")
             current_partial_result = e.partial_result
             should_retry = True
 
         except httpx.HTTPStatusError as e:
             self.logger.error(
-                f"AI请求HTTP状态错误 (sync): {e.response.status_code} - {e.response.text}"
+                f"AI请求HTTP状态помилка (sync): {e.response.status_code} - {e.response.text}"
             )
             should_retry = True
             is_hard_error = True
@@ -1151,21 +1151,21 @@ class Agent:
                 time.sleep(5)
 
         except httpx.RequestError as e:
-            # 根据错误类型给出更清晰的提示
+            # 根据помилка类型给出更清晰的提示
             if isinstance(e, httpx.ReadError):
-                self.logger.error(f"AI请求读取响应失败 (sync): {type(e).__name__}: {e} (可能是服务器关闭连接或网络中断)\nprompt:{prompt}")
+                self.logger.error(f"Не вдалось прочитати відповідь AI (sync): {type(e).__name__}: {e} (можливо, сервер закрив з'єднання або мережа обірвалась)\nprompt:{prompt}")
             elif isinstance(e, httpx.ConnectError):
-                self.logger.error(f"AI请求连接失败 (sync): {type(e).__name__}: {e} (无法连接到服务器，请检查网络或base_url)\nprompt:{prompt}")
+                self.logger.error(f"Не вдалось підключитись до AI (sync): {type(e).__name__}: {e} (не вдається підключитись, перевірте мережу або base_url)\nprompt:{prompt}")
             elif isinstance(e, httpx.WriteError):
-                self.logger.error(f"AI请求发送数据失败 (sync): {type(e).__name__}: {e}\nprompt:{prompt}")
+                self.logger.error(f"Не вдалось надіслати дані до AI (sync): {type(e).__name__}: {e}\nprompt:{prompt}")
             elif isinstance(e, httpx.TimeoutException):
-                self.logger.error(f"AI请求超时 (sync): {type(e).__name__}: {e} (请求超过{self.timeout}秒未完成)\nprompt:{prompt}")
+                self.logger.error(f"Запит до AI вичерпав час очікування (sync): {type(e).__name__}: {e} (запит перевищив{self.timeout}сек без завершення)\nprompt:{prompt}")
             else:
-                self.logger.error(f"AI请求连接错误 (sync): {type(e).__name__}: {e}\nprompt:{prompt}")
+                self.logger.error(f"Помилка підключення до AI (sync): {type(e).__name__}: {e}\nprompt:{prompt}")
             should_retry = True
             is_hard_error = True
         except (KeyError, IndexError, ValueError, json.JSONDecodeError) as e:
-            self.logger.error(f"AI响应格式或值错误 (sync), 将尝试重试: {repr(e)}")
+            self.logger.error(f"Помилка формату або значення відповіді AI (sync), пробую повтор: {repr(e)}")
             should_retry = True
             is_hard_error = True
 
@@ -1176,7 +1176,7 @@ class Agent:
             if is_hard_error:
                 if retry_count == 0:
                     if self.total_error_counter.add():
-                        self.logger.error("错误次数过多，已达到上限，不再重试。")
+                        self.logger.error("Забагато помилок, ліміт досягнуто, більше не повторюю.")
                         with self.unresolved_error_lock:
                             self.unresolved_error_count += 1
                         return (
@@ -1189,7 +1189,7 @@ class Agent:
                             )
                         )
                 elif self.total_error_counter.reach_limit():
-                    self.logger.error("错误次数过多，已达到上限，不再为该请求重试。")
+                    self.logger.error("Забагато помилок, ліміт досягнуто, для цього запиту повторів не буде.")
                     with self.unresolved_error_lock:
                         self.unresolved_error_count += 1
                     return (
@@ -1202,7 +1202,7 @@ class Agent:
                         )
                     )
 
-            self.logger.info(f"正在重试第 {retry_count + 1}/{self.retry} 次...")
+            self.logger.info(f"Повтор {retry_count + 1}/{self.retry} ...")
             time.sleep(0.5 * (2 ** retry_count))
             return self.send(
                 client,
@@ -1218,12 +1218,12 @@ class Agent:
             )
         else:
             if should_retry:
-                self.logger.error(f"所有重试均失败，已达到重试次数上限。")
+                self.logger.error(f"Усі повтори невдалі, ліміт спроб досягнуто.")
                 with self.unresolved_error_lock:
                     self.unresolved_error_count += 1
 
             if best_partial_result:
-                self.logger.info("所有重试失败，但存在部分翻译结果，将使用该结果。")
+                self.logger.info("Усі повтори невдалі, але є частковий переклад — використовую його.")
                 return best_partial_result
 
             return (
@@ -1272,7 +1272,7 @@ class Agent:
             f"provider:{self.provider},base-url:{self.baseurl},model-id:{self.model_id},concurrent:{self.max_concurrent}{rpm_info}{tpm_info},temperature:{self.temperature},system_proxy:{self.system_proxy_enable},json_output:{json_format}"
         )
         self.logger.info(
-            f"预计发送{len(prompts)}个请求"
+            f"Очікувано надіслати{len(prompts)}запитів"
         )
         self.total_error_counter.max_errors_count = (
                 len(prompts) // MAX_REQUESTS_PER_ERROR
@@ -1315,7 +1315,7 @@ class Agent:
                 output_list = list(results_iterator)
 
         self.logger.info(
-            f"所有请求处理完毕。未解决的错误总数: {self.unresolved_error_count}"
+            f"所有请求处理完毕.未解决的помилка总数: {self.unresolved_error_count}"
         )
 
         token_stats = self.token_counter.get_stats()
@@ -1329,7 +1329,7 @@ class Agent:
 
     def get_full_stats(self) -> dict:
         """
-        获取完整统计信息，包括token统计、请求数、未解决错误数和错误率。
+        获取完整统计信息，包括token统计、请求数、未解决помилка数和помилка率.
 
         Returns:
             dict: 包含完整统计信息的字典

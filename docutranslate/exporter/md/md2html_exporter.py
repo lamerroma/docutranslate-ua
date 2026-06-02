@@ -14,12 +14,12 @@ class MD2HTMLExporterConfig(MDExporterConfig):
     cdn: bool = True
 
 
-# 预读取本地静态文件（加速）
+# 预读取本地静态файл（加速）
 _LOCAL_CACHE = {}
 
 
 def _get_local_content(path: str) -> str:
-    """从本地读取文件内容，使用缓存加速"""
+    """从本地读取файл内容，使用缓存加速"""
     if path not in _LOCAL_CACHE:
         _LOCAL_CACHE[path] = resource_path(path).read_text(encoding="utf-8")
     return _LOCAL_CACHE[path]
@@ -55,7 +55,7 @@ class MD2HTMLExporter(MDExporter):
             auto_render = r'<script src="https://s4.zstatic.net/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>'
             mermaid = r'<script src="https://s4.zstatic.net/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>'
         else:
-            # CDN 不可用时，嵌入本地文件
+            # CDN 不可用时，嵌入本地файл
             pico = f'<style>{_get_local_content("static/pico.css")}</style>'
             katex_css = f'<style>{_get_local_content("static/katex/katex.css")}</style>'
             katex_js = f'<script>{_get_local_content("static/katex/katex.js")}</script>'

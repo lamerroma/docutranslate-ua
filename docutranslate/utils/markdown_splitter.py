@@ -4,7 +4,7 @@ import re
 from typing import List, Tuple
 
 # 定义一个特殊的合并标记，用于在 separators 中标记“这是一个被切断的代码块，需要无缝合并”
-# 包含生僻字符防止冲突
+# 包含生僻символів防止冲突
 MERGE_CODE_TOKEN = "\u0000<!--MD_SPLIT_MERGE-->\u0000"
 
 
@@ -158,7 +158,7 @@ class MarkdownBlockSplitter:
                 first_chunk = True
 
                 for sub in inner_parts:
-                    # 尝试构建当前块：Header + Current + sub + Footer
+                    # 尝试Будую当前块：Header + Current + sub + Footer
                     # 我们需要预估加上这一行后，是否会超限
                     # 预估大小 = Header + \n + Current + sub + \n + Footer
                     potential_content = current_sub_block_content + sub
@@ -172,7 +172,7 @@ class MarkdownBlockSplitter:
                             wrapped_block = f"{header}\n{current_sub_block_content}\n{footer}"
                             blocks.append(wrapped_block)
 
-                            # 添加特殊合并标记（不是空字符串，而是 MERGE_CODE_TOKEN）
+                            # 添加特殊合并标记（不是空символів串，而是 MERGE_CODE_TOKEN）
                             separators.append(MERGE_CODE_TOKEN)
 
                             first_chunk = False
@@ -220,9 +220,9 @@ def split_markdown_with_layout(markdown_text: str, max_block_size=5000) -> Tuple
 
 def join_markdown_with_layout(chunks: List[str], separators: List[str]) -> str:
     """
-    还原 Markdown。
+    还原 Markdown.
     重点：检测 MERGE_CODE_TOKEN，如果遇到，则剥离 Chunk A 的尾巴和 Chunk B 的头，
-    实现无缝拼接。
+    实现无缝拼接.
     """
     if not chunks:
         return ""
@@ -246,8 +246,8 @@ def join_markdown_with_layout(chunks: List[str], separators: List[str]) -> str:
             # 2. 处理 next_chunk (开头应该是 ```python 或 ```)
             # 正则：匹配开头的 ```加可选语言标识 加换行
             # 注意：翻译后的 next_chunk 可能包含前面多余的空行，先 lstrip 比较安全
-            # 但也不能 lstrip 太多导致缩进丢失。代码块的 fence 通常顶格或跟随缩进。
-            # 这里简单处理顶格的情况。
+            # 但也不能 lstrip 太多导致缩进丢失.代码块的 fence 通常顶格或跟随缩进.
+            # 这里简单处理顶格的情况.
             next_chunk = re.sub(r'^\s*```.*\n', '', next_chunk, count=1)
 
             # 直接拼接，不加换行符，因为 split 时 content 包含了换行

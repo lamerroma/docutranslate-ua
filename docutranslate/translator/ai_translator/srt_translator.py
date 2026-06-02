@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Self, Literal
 
 import charset_normalizer
-import srt  # 导入srt库来处理字幕文件
+import srt  # 导入srt库来处理字幕файл
 
 from docutranslate.agents.segments_agent import SegmentsTranslateAgentConfig, SegmentsTranslateAgent
 from docutranslate.ir.document import Document
@@ -20,8 +20,8 @@ class SrtTranslatorConfig(AiTranslatorConfig):
 
 class SrtTranslator(AiTranslator):
     """
-    一个用于翻译 SRT (.srt) 字幕文件的翻译器。
-    它会提取每个字幕块的文本内容，进行翻译，然后根据配置将译文写回。
+    一个用于翻译 SRT (.srt) 字幕файл的翻译器.
+    它会提取每个字幕块的文本内容，进行翻译，然后根据配置将译文写回.
     """
 
     def __init__(self, config: SrtTranslatorConfig):
@@ -70,7 +70,7 @@ class SrtTranslator(AiTranslator):
 
     def _pre_translate(self, document: Document):
         """
-        预处理步骤：解析SRT文件，提取所有字幕文本。
+        预处理步骤：解析SRTфайл，提取所有字幕文本.
 
         Returns:
             tuple: (解析后的字幕对象列表, 待翻译的原文文本列表)
@@ -78,20 +78,20 @@ class SrtTranslator(AiTranslator):
         # 使用 charset_normalizer 自动检测编码
         result = charset_normalizer.from_bytes(document.content).best()
         if result is None:
-            self.logger.error("无法检测SRT文件编码")
+            self.logger.error("Не вдалось визначити кодування SRT-файлу")
             return [], []
         detected_encoding = result.encoding
         try:
             srt_content = document.content.decode(detected_encoding)
         except (UnicodeDecodeError, AttributeError) as e:
-            self.logger.error(f"无法使用检测到的编码 {detected_encoding} 解码文件: {e}")
+            self.logger.error(f"Не вдалось використати виявлене кодування {detected_encoding} декодування файлу: {e}")
             return [], []
 
         # 使用 srt 库解析内容
         try:
             subtitles = list(srt.parse(srt_content))
         except srt.SRTParseError as e:
-            self.logger.error(f"解析SRT文件失败: {e}")
+            self.logger.error(f"Не вдалось розпарсити SRT-файл: {e}")
             return [], []
 
         # 提取所有原文文本，准备进行批量翻译
@@ -102,10 +102,10 @@ class SrtTranslator(AiTranslator):
     def _after_translate(self, subtitles: list[srt.Subtitle], translated_texts: list[str],
                          original_texts: list[str]) -> bytes:
         """
-        翻译后处理步骤：将译文根据配置模式写回字幕对象，并生成新的SRT文件内容。
+        翻译后处理步骤：将译文根据配置模式写回字幕对象，并生成新的SRTфайл内容.
 
         Returns:
-            bytes: 新的SRT文件内容的字节流。
+            bytes: 新的SRTфайл内容的字节流.
         """
         for i, sub in enumerate(subtitles):
             translated_text = translated_texts[i]
@@ -120,11 +120,11 @@ class SrtTranslator(AiTranslator):
             elif self.insert_mode == "prepend":
                 sub.content = translated_text.strip() + self.separator + original_text.strip()
             else:
-                self.logger.error(f"不正确的SrtTranslatorConfig参数: insert_mode='{self.insert_mode}'")
+                self.logger.error(f"Невірні параметри SrtTranslatorConfig: insert_mode='{self.insert_mode}'")
                 # 默认回退到替换模式，避免程序中断
                 sub.content = translated_text
 
-        # 使用 srt 库将修改后的字幕对象列表重新合成为SRT格式的字符串
+        # 使用 srt 库将修改后的字幕对象列表重新合成为SRT格式的символів串
         new_srt_content_str = srt.compose(subtitles)
 
         # 返回UTF-8编码的字节流
@@ -132,12 +132,12 @@ class SrtTranslator(AiTranslator):
 
     def translate(self, document: Document) -> Self:
         """
-        同步翻译SRT文档。
+        同步翻译SRT文档.
         """
         subtitles, original_texts = self._pre_translate(document)
 
         if not original_texts:
-            self.logger.info("\n文件中没有找到需要翻译的字幕内容。")
+            self.logger.info("\nУ файлі не знайдено субтитрів для перекладу.")
             return self
         if self.glossary_agent:
             # 1. 获取增量
@@ -161,13 +161,13 @@ class SrtTranslator(AiTranslator):
 
     async def translate_async(self, document: Document) -> Self:
         """
-        异步翻译SRT文档。
+        异步翻译SRT文档.
         """
         # I/O密集型操作在线程中运行
         subtitles, original_texts = await asyncio.to_thread(self._pre_translate, document)
 
         if not original_texts:
-            self.logger.info("\n文件中没有找到需要翻译的字幕内容。")
+            self.logger.info("\nУ файлі не знайдено субтитрів для перекладу.")
             return self
 
         if self.glossary_agent:

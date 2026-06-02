@@ -77,15 +77,15 @@ translation_service: TranslationService = get_translation_service()
 tags_metadata = [
     {
         "name": "Service API",
-        "description": "核心的服务API，用于提交、管理和下载翻译任务。",
+        "description": "核心的服务API，用于提交、管理和下载翻译任务.",
     },
     {
         "name": "Application",
-        "description": "应用本身的相关端点，如元信息和默认参数。",
+        "description": "应用本身的相关端点，如元信息和默认参数.",
     },
     {
         "name": "Temp",
-        "description": "测试用接口。",
+        "description": "测试用接口.",
     },
 ]
 
@@ -103,7 +103,7 @@ async def lifespan(app: FastAPI):
 
     global_logger.propagate = False
     global_logger.setLevel(logging.INFO)
-    print("应用启动完成，多任务状态已初始化。")
+    print("应用启动完成，多任务状态已初始化.")
     if hasattr(app.state, "port_to_use"):
         if getattr(app.state, "with_mcp", False) and MCP_AVAILABLE:
             print(f"MCP SSE endpoint available at: http://127.0.0.1:{app.state.port_to_use}/mcp/sse")
@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI):
 
     # Close HTTP client
     await httpx_client.aclose()
-    print("应用关闭，资源已彻底释放。")
+    print("应用关闭，资源已彻底释放.")
 
 
 app = FastAPI(
@@ -130,19 +130,19 @@ app = FastAPI(
     lifespan=lifespan,
     title="DocuTranslate API",
     description=f"""
-DocuTranslate 后端服务 API，提供文档翻译、状态查询、结果下载等功能。
+DocuTranslate 后端服务 API，提供文档翻译、状态查询、结果下载等功能.
 
-**注意**: 所有任务状态都保存在服务进程的内存中，服务重启将导致所有任务信息丢失。
+**注意**: 所有任务状态都保存在服务进程的内存中，服务重启将导致所有任务信息丢失.
 
-### 主要工作流程:
-1.  **`POST /service/translate`** 或 **`POST /service/translate/file`**: 提交文件和包含`workflow_type`的翻译参数，启动一个后台任务。服务会自动生成并返回一个唯一的 `task_id`。
-2.  **`GET /service/status/{{task_id}}`**: 使用获取到的 `task_id` 轮询此端点，获取任务的实时状态。
-3.  **`GET /service/logs/{{task_id}}`**: (可选) 获取实时的翻译日志。
-4.  **`GET /service/download/{{task_id}}/{{file_type}}`**: 任务完成后 (当 `download_ready` 为 `true` 时)，通过此端点下载结果文件。
-5.  **`GET /service/attachment/{{task_id}}/{{identifier}}`**: (可选) 如果任务生成了附件（如术语表），通过此端点下载。
-6.  **`GET /service/content/{{task_id}}/{{file_type}}`**: 任务完成后(当 `download_ready` 为 `true` 时)，以JSON格式获取文件内容。
-7.  **`POST /service/cancel/{{task_id}}`**: (可选) 取消一个正在进行的任务。
-8.  **`POST /service/release/{{task_id}}`**: (可选) 当任务不再需要时，释放其在服务器上占用的所有资源，包括临时文件。
+### 主要робочий процес程:
+1.  **`POST /service/translate`** 或 **`POST /service/translate/file`**: 提交файл和包含`workflow_type`的翻译参数，启动一个后台任务.服务会自动生成并返回一个唯一的 `task_id`.
+2.  **`GET /service/status/{{task_id}}`**: 使用获取到的 `task_id` 轮询此端点，获取任务的实时状态.
+3.  **`GET /service/logs/{{task_id}}`**: (可选) 获取实时的翻译日志.
+4.  **`GET /service/download/{{task_id}}/{{file_type}}`**: 任务完成后 (当 `download_ready` 为 `true` 时)，通过此端点下载结果файл.
+5.  **`GET /service/attachment/{{task_id}}/{{identifier}}`**: (可选) 如果任务生成了附件（如术语表），通过此端点下载.
+6.  **`GET /service/content/{{task_id}}/{{file_type}}`**: 任务完成后(当 `download_ready` 为 `true` 时)，以JSON格式获取файл内容.
+7.  **`POST /service/cancel/{{task_id}}`**: (可选) 取消一个正在进行的任务.
+8.  **`POST /service/release/{{task_id}}`**: (可选) 当任务不再需要时，释放其在服务器上占用的所有资源，包括临时файл.
 
 **版本**: {__version__}
 """,
@@ -221,7 +221,7 @@ def get_mcp_translation_service() -> Optional[TranslationService]:
 class TranslateServiceRequest(BaseModel):
     file_name: str = Field(
         ...,
-        description="上传的原始文件名，含扩展名。",
+        description="上传的原始файл名，含扩展名.",
         examples=[
             "my_paper.pdf",
             "chapter1.txt",
@@ -234,10 +234,10 @@ class TranslateServiceRequest(BaseModel):
         ],
     )
     file_content: str = Field(
-        ..., description="Base64编码的文件内容。", examples=["JVBERi0xLjcKJeLjz9MKMSAwIG9iago8PC/..."]
+        ..., description="Base64编码的файл内容.", examples=["JVBERi0xLjcKJeLjz9MKMSAwIG9iago8PC/..."]
     )
     payload: TranslatePayload = Field(
-        ..., description="包含工作流类型和相应参数的载荷。"
+        ..., description="包含робочий процес类型和相应参数的载荷."
     )
 
     model_config = ConfigDict(
@@ -283,16 +283,16 @@ class TranslateServiceRequest(BaseModel):
     "/translate",
     summary="提交翻译任务 (统一入口)",
     description="""
-接收一个包含文件内容（Base64编码）和工作流参数的JSON请求，启动一个后台翻译任务。
+接收一个包含файл内容（Base64编码）和робочий процес参数的JSON请求，启动一个Фонове завдання перекладу.
 
-- **工作流选择**: `payload.workflow_type` 决定任务类型（如 `markdown_based`, `txt`, `json`, `xlsx`, `docx`, `srt`, `epub`, `html`, `ass`, `pptx`, `auto`）。
-- **Auto 模式**: 当设置为 `auto` 时，后端将根据 `file_name` 的扩展名自动选择最合适的工作流。
-- **动态参数**: 根据所选工作流，API需要不同的参数集。请参考下面的Schema或示例。
-- **异步处理**: 此端点会立即返回任务ID，客户端需轮询状态接口获取进度。
+- **робочий процес选择**: `payload.workflow_type` 决定任务类型（如 `markdown_based`, `txt`, `json`, `xlsx`, `docx`, `srt`, `epub`, `html`, `ass`, `pptx`, `auto`）.
+- **Auto 模式**: 当设置为 `auto` 时，后端将根据 `file_name` 的扩展名自动选择最合适的робочий процес.
+- **动态参数**: 根据所选робочий процес，API需要不同的参数集.请参考下面的Schema或示例.
+- **异步处理**: 此端点会立即返回任务ID，客户端需轮询状态接口获取进度.
 """,
     responses={
         200: {
-            "description": "翻译任务已成功启动。",
+            "description": "翻译任务已成功启动.",
             "content": {
                 "application/json": {
                     "example": {
@@ -303,16 +303,16 @@ class TranslateServiceRequest(BaseModel):
                 }
             },
         },
-        400: {"description": "请求体无效，例如Base64解码失败。"},
+        400: {"description": "请求体无效，例如Base64解码失败."},
         429: {
-            "description": "服务器已有一个同ID的任务在处理中（理论上不应发生，因为ID是新生成的）。"
+            "description": "服务器已有一个同ID的任务在处理中（理论上不应发生，因为ID是新生成的）."
         },
-        500: {"description": "启动后台任务时发生未知错误。"},
+        500: {"description": "启动后台任务时发生未知помилка."},
     },
 )
 async def service_translate(
         request: TranslateServiceRequest = Body(
-            ..., description="翻译任务的详细参数和文件内容。"
+            ..., description="翻译任务的详细参数和файл内容."
         )
 ):
     task_id = uuid.uuid4().hex[:8]
@@ -320,7 +320,7 @@ async def service_translate(
     try:
         file_contents = base64.b64decode(request.file_content)
     except (binascii.Error, TypeError) as e:
-        raise HTTPException(status_code=400, detail=f"无效的Base64文件内容: {mask_secrets(str(e))}")
+        raise HTTPException(status_code=400, detail=f"无效的Base64файл内容: {mask_secrets(str(e))}")
 
     try:
         response_data = await translation_service.start_translation(
@@ -346,15 +346,15 @@ async def service_translate(
 
 @service_router.post(
     "/translate/file",
-    summary="提交翻译任务 (文件上传)",
+    summary="提交翻译任务 (файл上传)",
     description="""
-通过 `multipart/form-data` 方式上传文件并启动翻译任务。
+通过 `multipart/form-data` 方式上传файл并启动翻译任务.
 
-此接口适用于直接上传二进制文件（如 PDF, Docx 等），无需先进行 Base64 编码。
+此接口适用于直接上传二进制файл（如 PDF, Docx 等），无需先进行 Base64 编码.
 """,
     responses={
         200: {
-            "description": "翻译任务已成功启动。",
+            "description": "翻译任务已成功启动.",
             "content": {
                 "application/json": {
                     "example": {
@@ -365,17 +365,17 @@ async def service_translate(
                 }
             },
         },
-        422: {"description": "请求参数验证失败，例如 JSON 格式错误。"},
+        422: {"description": "请求参数验证失败，例如 JSON 格式помилка."},
         429: {
-            "description": "服务器已有一个同ID的任务在处理中（理论上不应发生，因为ID是新生成的）。"
+            "description": "服务器已有一个同ID的任务在处理中（理论上不应发生，因为ID是新生成的）."
         },
-        500: {"description": "启动后台任务时发生未知错误。"},
+        500: {"description": "启动后台任务时发生未知помилка."},
     },
 )
 async def service_translate_file(
-        file: UploadFile = File(..., description="要翻译的文件"),
+        file: UploadFile = File(..., description="要翻译的файл"),
         payload: Json[TranslatePayload] = Form(
-            ..., description="包含工作流参数的JSON字符串 (详见接口文档说明)。"
+            ..., description="包含робочий процес参数的JSONсимволів串 (详见接口文档说明)."
         ),
 ):
     task_id = uuid.uuid4().hex[:8]
@@ -383,7 +383,7 @@ async def service_translate_file(
     try:
         file_contents = await file.read()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"读取上传文件失败: {mask_secrets(str(e))}")
+        raise HTTPException(status_code=500, detail=f"读取上传файл失败: {mask_secrets(str(e))}")
 
     try:
         response_data = await translation_service.start_translation(
@@ -410,11 +410,11 @@ async def service_translate_file(
 @service_router.post(
     "/cancel/{task_id}",
     summary="取消翻译任务",
-    description="根据任务ID取消一个正在进行中的翻译任务。如果任务已经完成、失败或已经被取消，则会返回错误。",
+    description="根据任务ID取消一个正在进行中的翻译任务.如果任务已经完成、失败或已经被取消，则会返回помилка.",
     responses={
-        200: {"description": "成功取消任务。"},
-        404: {"description": "任务ID不存在。"},
-        400: {"description": "任务已结束，无法取消。"},
+        200: {"description": "成功取消任务."},
+        404: {"description": "任务ID不存在."},
+        400: {"description": "任务已结束，无法取消."},
     },
 )
 async def service_cancel_translate(
@@ -426,10 +426,10 @@ async def service_cancel_translate(
 @service_router.post(
     "/release/{task_id}",
     summary="释放任务资源",
-    description="根据任务ID释放其在服务器上占用的所有资源，包括状态、日志和缓存的翻译结果文件。如果任务正在进行，会先尝试取消该任务。此操作不可逆。",
+    description="根据任务ID释放其在服务器上占用的所有资源，包括状态、日志和缓存的翻译结果файл.如果任务正在进行，会先尝试取消该任务.此操作不可逆.",
     responses={
-        200: {"description": "成功释放任务资源。"},
-        404: {"description": "任务ID不存在。"},
+        200: {"description": "成功释放任务资源."},
+        404: {"description": "任务ID不存在."},
     },
 )
 async def service_release_task(
@@ -447,10 +447,10 @@ async def service_release_task(
 @service_router.get(
     "/status/{task_id}",
     summary="获取任务状态",
-    description="根据任务ID获取任务的当前状态。当 `download_ready` 为 `true` 时，`downloads` 和 `attachment` 对象中会包含可用的下载链接。",
+    description="根据任务ID获取任务的当前状态.当 `download_ready` 为 `true` 时，`downloads` 和 `attachment` 对象中会包含可用的下载链接.",
     responses={
         200: {
-            "description": "成功获取任务状态。",
+            "description": "成功获取任务状态.",
             "content": {
                 "application/json": {
                     "examples": {
@@ -499,7 +499,7 @@ async def service_release_task(
                             "value": {
                                 "task_id": "b2865b93",
                                 "is_processing": False,
-                                "status_message": "翻译成功！用时 123.45 秒。",
+                                "status_message": "翻译成功！用时 123.45 сек.",
                                 "error_flag": False,
                                 "download_ready": True,
                                 "progress_percent": 100,
@@ -550,7 +550,7 @@ async def service_release_task(
                 }
             },
         },
-        404: {"description": "指定的任务ID不存在。"},
+        404: {"description": "指定的任务ID不存在."},
     },
 )
 async def service_get_status(
@@ -560,7 +560,7 @@ async def service_get_status(
 ):
     task_state = translation_service.get_task_state(task_id)
     if not task_state:
-        raise HTTPException(status_code=404, detail=f"找不到任务ID '{task_id}'。")
+        raise HTTPException(status_code=404, detail=f"找不到任务ID '{task_id}'.")
 
     downloads = {}
     if task_state.get("download_ready") and task_state.get("downloadable_files"):
@@ -573,7 +573,7 @@ async def service_get_status(
             attachments[identifier] = f"/service/attachment/{task_id}/{identifier}"
 
     # 获取统计信息
-    # 优先使用已保存的统计数据（翻译完成后）
+    # 优先使用已保存的统计数据（Переклад завершено后）
     # 如果正在翻译中，尝试从workflow实例获取实时统计
     statistics = task_state.get("statistics")
     if statistics is None:
@@ -608,8 +608,8 @@ async def service_get_status(
 
 def _get_default_statistics() -> dict:
     """
-    返回默认统计结构（向后兼容）。
-    当任务尚未完成或统计信息不可用时使用。
+    返回默认统计结构（向后兼容）.
+    当任务尚未完成或统计信息不可用时使用.
     """
     return {
         "glossary": None,
@@ -630,10 +630,10 @@ def _get_default_statistics() -> dict:
 @service_router.get(
     "/logs/{task_id}",
     summary="获取任务增量日志",
-    description="以流式方式获取任务的增量日志。客户端每次调用此接口，都会返回自上次调用以来产生的新日志行。",
+    description="以流式方式获取任务的增量日志.客户端每次调用此接口，都会返回自上次调用以来产生的新日志行.",
     responses={
-        200: {"description": "成功返回增量日志。"},
-        404: {"description": "任务ID不存在。"},
+        200: {"description": "成功返回增量日志."},
+        404: {"description": "任务ID不存在."},
     },
 )
 async def service_get_logs(
@@ -661,15 +661,15 @@ FileType = Literal[
 
 @service_router.get(
     "/download/{task_id}/{file_type}",
-    summary="下载翻译结果文件",
+    summary="下载翻译结果файл",
     responses={
         200: {
-            "description": "成功返回文件流。文件名通过 Content-Disposition 头指定。",
+            "description": "成功返回файл流.файл名通过 Content-Disposition 头指定.",
         },
         404: {
-            "description": "任务ID不存在，或该任务不支持所请求的文件类型，或临时文件已丢失。"
+            "description": "任务ID不存在，或该任务不支持所请求的файл类型，或临时файл已丢失."
         },
-        500: {"description": "在服务器上读取文件时发生内部错误。"},
+        500: {"description": "在服务器上读取файл时发生内部помилка."},
     },
 )
 async def service_download_file(
@@ -678,7 +678,7 @@ async def service_download_file(
         ),
         file_type: FileType = FastApiPath(
             ...,
-            description="要下载的文件类型。",
+            description="要下载的файл类型.",
             examples=["html", "json", "csv", "docx", "srt", "epub", "ass", "pptx"],
         ),
 ):
@@ -686,7 +686,7 @@ async def service_download_file(
     if not file_info or not os.path.exists(file_info.get("path")):
         raise HTTPException(
             status_code=404,
-            detail=f"任务 '{task_id}' 不支持下载 '{file_type}' 类型的文件，或文件已丢失。",
+            detail=f"任务 '{task_id}' 不支持下载 '{file_type}' 类型的файл，或файл已丢失.",
         )
 
     file_path = file_info["path"]
@@ -698,14 +698,14 @@ async def service_download_file(
 
 @service_router.get(
     "/attachment/{task_id}/{identifier}",
-    summary="下载附件文件",
-    description="根据任务ID和附件标识符下载在翻译过程中生成的附加文件，例如自动生成的术语表。",
+    summary="下载附件файл",
+    description="根据任务ID和附件标识符下载在翻译过程中生成的附加файл，例如自动生成的术语表.",
     responses={
         200: {
-            "description": "成功返回文件流。文件名通过 Content-Disposition 头指定。",
+            "description": "成功返回файл流.файл名通过 Content-Disposition 头指定.",
         },
         404: {
-            "description": "任务ID不存在，或该任务没有指定的附件，或临时文件已丢失。"
+            "description": "任务ID不存在，或该任务没有指定的附件，或临时файл已丢失."
         },
     },
 )
@@ -714,14 +714,14 @@ async def service_download_attachment(
             ..., description="已完成任务的ID", examples=["g1h2i3j4"]
         ),
         identifier: str = FastApiPath(
-            ..., description="要下载的附件的标识符。", examples=["glossary"]
+            ..., description="要下载的附件的标识符.", examples=["glossary"]
         ),
 ):
     attachment_info = translation_service.get_attachment_file_path(task_id, identifier)
     if not attachment_info or not os.path.exists(attachment_info.get("path")):
         raise HTTPException(
             status_code=404,
-            detail=f"任务 '{task_id}' 不存在标识符为 '{identifier}' 的附件，或文件已丢失。",
+            detail=f"任务 '{task_id}' 不存在标识符为 '{identifier}' 的附件，或файл已丢失.",
         )
 
     file_path = attachment_info["path"]
@@ -734,7 +734,7 @@ async def service_download_attachment(
 @service_router.get(
     "/glossary/template",
     summary="下载术语表模板",
-    description="下载术语表CSV模板，包含src和dst列，UTF-8 with BOM编码，适合在Excel中直接编辑。",
+    description="下载术语表CSV模板，包含src和dst列，UTF-8 with BOM编码，适合在Excel中直接编辑.",
 )
 async def download_glossary_template():
     # UTF-8 with BOM header
@@ -751,19 +751,19 @@ async def download_glossary_template():
     "/content/{task_id}/{file_type}",
     summary="下载翻译结果内容 (JSON)",
     description="""
-以JSON格式获取指定文件类型的内容，而不是直接下载文件。
+以JSON格式获取指定файл类型的内容，而不是直接下载файл.
 
-- **返回结构**: 返回一个JSON对象，包含文件名、文件类型和文件内容的Base64编码字符串。
-- **内容编码**: 文件内容总是以 **Base64** 编码，客户端需要自行解码才能使用。
+- **返回结构**: 返回一个JSON对象，包含файл名、файл类型和файл内容的Base64编码символів串.
+- **内容编码**: файл内容总是以 **Base64** 编码，客户端需要自行解码才能使用.
 """,
     responses={
         200: {
-            "description": "成功返回文件内容。",
+            "description": "成功返回файл内容.",
         },
         404: {
-            "description": "任务ID不存在，或该任务不支持所请求的文件类型，或临时文件已丢失。"
+            "description": "任务ID不存在，或该任务不支持所请求的файл类型，或临时файл已丢失."
         },
-        500: {"description": "在服务器上读取文件时发生内部错误。"},
+        500: {"description": "在服务器上读取файл时发生内部помилка."},
     },
 )
 async def service_content(
@@ -772,7 +772,7 @@ async def service_content(
         ),
         file_type: FileType = FastApiPath(
             ...,
-            description="要获取内容的文件类型。",
+            description="要获取内容的файл类型.",
             examples=["html", "json", "csv", "docx", "srt", "epub", "ass", "pptx"],
         ),
 ):
@@ -780,7 +780,7 @@ async def service_content(
     if not file_info or not os.path.exists(file_info.get("path")):
         raise HTTPException(
             status_code=404,
-            detail=f"任务 '{task_id}' 不支持获取 '{file_type}' 类型的内容，或文件已丢失。",
+            detail=f"任务 '{task_id}' 不支持获取 '{file_type}' 类型的内容，或файл已丢失.",
         )
 
     file_path = file_info["path"]
@@ -798,7 +798,7 @@ async def service_content(
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"读取文件时发生内部错误: {mask_secrets(str(e))}")
+        raise HTTPException(status_code=500, detail=f"读取файл时发生内部помилка: {mask_secrets(str(e))}")
 
 
 # ===================================================================
@@ -809,11 +809,11 @@ async def service_content(
 @service_router.get(
     "/engin-list",
     summary="获取可用的转换引擎",
-    description="返回当前服务支持的文档转换引擎列表，包括 MinerU Cloud、MinerU Local 和 Docling（如果已安装）。",
+    description="返回当前服务支持的文档转换引擎列表，包括 MinerU Cloud、MinerU Local 和 Docling（如果已安装）.",
     tags=["Application"],
     responses={
         200: {
-            "description": "成功返回可用的转换引擎列表。",
+            "description": "成功返回可用的转换引擎列表.",
             "content": {
                 "application/json": {
                     "example": ["mineru", "mineru_deploy", "docling"]
@@ -832,11 +832,11 @@ async def service_get_engin_list():
 @service_router.get(
     "/task-list",
     summary="获取任务列表",
-    description="返回当前所有正在处理或已完成的翻译任务ID列表。",
+    description="返回当前所有正在处理或已完成的翻译任务ID列表.",
     tags=["Application"],
     responses={
         200: {
-            "description": "成功返回任务ID列表。",
+            "description": "成功返回任务ID列表.",
             "content": {
                 "application/json": {
                     "example": ["a1b2c3d4", "e5f6g7h8"]
@@ -852,11 +852,11 @@ async def service_get_task_list():
 @service_router.get(
     "/default-params",
     summary="获取默认参数",
-    description="返回服务使用的默认参数，包括并发数、分块大小、温度、超时等配置。",
+    description="返回服务使用的默认参数，包括并发数、分块大小、温度、超时等конфігурацію.",
     tags=["Application"],
     responses={
         200: {
-            "description": "成功返回默认参数。",
+            "description": "成功返回默认参数.",
             "content": {
                 "application/json": {
                     "example": {
@@ -879,11 +879,11 @@ def service_get_default_params():
 @service_router.get(
     "/meta",
     summary="获取应用信息",
-    description="返回当前服务的版本号等元信息。",
+    description="返回当前服务的版本号等元信息.",
     tags=["Application"],
     responses={
         200: {
-            "description": "成功返回应用信息。",
+            "description": "成功返回应用信息.",
             "content": {
                 "application/json": {
                     "example": {"version": "1.0.0"}
@@ -900,31 +900,31 @@ async def service_get_app_version():
     "/flat-translate",
     summary="translate(sync)",
     description="""
-上传文件并直接等待翻译完成，无需轮询状态。
-所有参数均已扁平化展开，直接通过 Form 表单提交。
+上传файл并直接等待Переклад завершено，无需轮询状态.
+所有参数均已扁平化展开，直接通过 Form 表单提交.
 """,
     response_model=None,
     responses={
-        200: {"description": "翻译成功，返回翻译后的文件内容。"},
-        500: {"description": "翻译过程中发生错误。"},
+        200: {"description": "翻译成功，返回翻译后的файл内容."},
+        500: {"description": "翻译过程中发生помилка."},
     },
 )
 async def service_flat_translate(
         request: Request,
-        file: UploadFile = File(..., description="要翻译的文件"),
+        file: UploadFile = File(..., description="要翻译的файл"),
         model_id: str = Form("", description="模型ID (例如: gpt-4o, glm-4-air)，当 skip_translate=False 时必填"),
         base_url: Optional[str] = Form("",
                                        description="LLM API 基础 URL (如不填则依赖环境变量或默认值，当 skip_translate=False 时必填)"),
         api_key: str = Form("xx", description="API Key (默认xx)"),
         to_lang: str = Form("中文", description="目标翻译语言"),
         workflow_type: str = Form("auto",
-                                  description="工作流类型: auto, markdown_based, txt, json, xlsx, docx, srt, epub, html, ass, pptx"),
+                                  description="робочий процес类型: auto, markdown_based, txt, json, xlsx, docx, srt, epub, html, ass, pptx"),
         skip_translate: bool = Form(False, description="是否跳过翻译仅进行格式解析"),
         concurrent: int = Form(default_params["concurrent"], description="并发请求数"),
         chunk_size: int = Form(default_params["chunk_size"], description="文本分块大小"),
         temperature: float = Form(default_params["temperature"], description="温度 (0-1)"),
         top_p: float = Form(default_params["top_p"], description="核采样 (0-1)"),
-        timeout: int = Form(default_params["timeout"], description="单次请求超时时间(秒)"),
+        timeout: int = Form(default_params["timeout"], description="单次请求超时时间(сек)"),
         retry: int = Form(default_params["retry"], description="失败重试次数"),
         thinking: str = Form("default", description="思考模式: default, enable, disable"),
         custom_prompt: Optional[str] = Form("", description="自定义系统提示词"),
@@ -957,10 +957,10 @@ async def service_flat_translate(
                                                        description="[MinerU Local] Server URL (backend='vlm-http-client'时使用)"),
         json_paths: Optional[List[str]] = Form(None, description="[Json专用] JsonPath 表达式列表, 如 '$.name'"),
         glossary_generate_enable: bool = Form(False, description="是否开启术语表自动生成"),
-        glossary_dict_json: Optional[str] = Form("", description="术语表字典 JSON 字符串, 格式: {'原文':'译文'}"),
+        glossary_dict_json: Optional[str] = Form("", description="术语表字典 JSON символів串, 格式: {'原文':'译文'}"),
         glossary_agent_config_json: Optional[str] = Form("",
-                                                         description="术语表 Agent 配置 JSON 字符串 (包含 base_url, model_id 等)"),
-        extra_body_json: Optional[str] = Form("", description="额外请求体参数 JSON 字符串, 会合并到 API 请求中")
+                                                         description="术语表 Agent 配置 JSON символів串 (包含 base_url, model_id 等)"),
+        extra_body_json: Optional[str] = Form("", description="额外请求体参数 JSON символів串, 会合并到 API 请求中")
 ):
     task_id = uuid.uuid4().hex[:8]
 
@@ -968,7 +968,7 @@ async def service_flat_translate(
         file_contents = await file.read()
         original_filename = file.filename or "uploaded_file"
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"文件读取失败: {mask_secrets(str(e))}")
+        raise HTTPException(status_code=500, detail=f"файл读取失败: {mask_secrets(str(e))}")
 
     parsed_glossary_dict = None
     if glossary_dict_json and glossary_dict_json.strip():
@@ -1066,7 +1066,7 @@ async def service_flat_translate(
             original_filename=original_filename
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"内部翻译错误: {mask_secrets(str(e))}")
+        raise HTTPException(status_code=500, detail=f"内部翻译помилка: {mask_secrets(str(e))}")
 
     task_state = translation_service.get_task_state(task_id)
 
@@ -1074,7 +1074,7 @@ async def service_flat_translate(
         raise HTTPException(status_code=500, detail="任务状态丢失")
 
     if task_state.get("error_flag"):
-        error_msg = task_state.get("status_message", "未知错误")
+        error_msg = task_state.get("status_message", "未知помилка")
         temp_dir = task_state.get("temp_dir")
         if temp_dir and os.path.isdir(temp_dir):
             import shutil
@@ -1089,7 +1089,7 @@ async def service_flat_translate(
     task_state = translation_service.get_task_state(task_id)
 
     if task_state.get("error_flag"):
-        error_msg = task_state.get("status_message", "未知错误")
+        error_msg = task_state.get("status_message", "未知помилка")
         await translation_service.release_task(task_id)
         raise HTTPException(status_code=500, detail=f"翻译任务失败: {error_msg}")
 

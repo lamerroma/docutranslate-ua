@@ -91,69 +91,69 @@ def placeholder2uris(markdown: str, mask_dict: MaskDict):
 def find_markdown_in_zip(zip_bytes: bytes):
     zip_file_bytes = io.BytesIO(zip_bytes)
     with zipfile.ZipFile(zip_file_bytes, 'r') as zip_ref:
-        # 获取 ZIP 中所有文件名
+        # 获取 ZIP 中所有файл名
         all_files = zip_ref.namelist()
-        # 筛选出 .md 文件
+        # 筛选出 .md файл
         md_files = [f for f in all_files if f.lower().endswith('.md')]
 
         if len(md_files) == 1:
             return md_files[0]
         elif len(md_files) > 1:
-            raise ValueError("ZIP 中包含多个 Markdown 文件")
+            raise ValueError("ZIP 中包含多个 Markdown файл")
         else:
-            raise ValueError("ZIP 中没有 Markdown 文件")
+            raise ValueError("ZIP 中没有 Markdown файл")
 
 
 def embed_inline_image_from_zip(zip_bytes: bytes, filename_in_zip: str | None = None, encoding="utf-8"):
     """
-    从ZIP文件的字节流中读取一个Markdown文件，并将其中的相对路径图片内联为Base64编码的data URI。
+    从ZIPфайл的字节流中读取一个Markdownфайл，并将其中的相对路径图片内联为Base64编码的data URI.
 
     Args:
-        zip_bytes (bytes): ZIP文件的字节内容。
+        zip_bytes (bytes): ZIPфайл的字节内容.
         filename_in_zip (str | None, optional):
-            要处理的Markdown文件名。如果为 None，则自动查找并使用ZIP包中的第一个.md或.markdown文件。
-            默认为 None。
-        encoding (str, optional): Markdown文件的编码格式。默认为 "utf-8"。
+            要处理的Markdownфайл名.如果为 None，则自动查找并使用ZIP包中的第一个.md或.markdownфайл.
+            默认为 None.
+        encoding (str, optional): Markdownфайл的编码格式.默认为 "utf-8".
 
     Returns:
-        str | None: 包含内联图片的Markdown文本内容，如果发生错误则返回None。
+        str | None: 包含内联图片的Markdown文本内容，如果发生помилка则返回None.
     """
     zip_file_bytes = io.BytesIO(zip_bytes)
     print("正在尝试打开内存中的ZIP存档...")
     with zipfile.ZipFile(zip_file_bytes, 'r') as archive:
-        print("ZIP存档已打开。")
+        print("ZIP存档已打开.")
 
         # --- 新增和修改的逻辑 ---
         target_md_filename = filename_in_zip
 
-        # 如果未指定文件名，则自动查找第一个Markdown文件
+        # 如果未指定файл名，则自动查找第一个Markdownфайл
         if target_md_filename is None:
-            print("`正在自动查找第一个Markdown文件...")
+            print("`正在自动查找第一个Markdownфайл...")
             found_md = None
             for name in archive.namelist():
-                # 确保它是一个文件（不是目录），并检查扩展名
+                # 确保它是一个файл（不是目录），并检查扩展名
                 if not name.endswith('/') and name.lower().endswith(('.md', '.markdown')):
                     found_md = name
                     break  # 找到第一个就停止
 
             if found_md:
                 target_md_filename = found_md
-                print(f"已自动选择Markdown文件: '{target_md_filename}'")
+                print(f"已自动选择Markdownфайл: '{target_md_filename}'")
             else:
-                print("错误: ZIP压缩包中未找到任何Markdown文件 (.md 或 .markdown)。")
-                print(f"压缩包中的可用文件列表: {archive.namelist()}")
+                print("помилка: ZIP压缩包中未找到任何Markdownфайл (.md 或 .markdown).")
+                print(f"压缩包中的可用файл列表: {archive.namelist()}")
                 return None
 
-        # 统一检查最终确定的文件是否存在于压缩包中
+        # 统一检查最终确定的файл是否存在于压缩包中
         if target_md_filename not in archive.namelist():
-            print(f"错误: 文件 '{target_md_filename}' 在ZIP压缩包中未找到。")
-            print(f"压缩包中的可用文件列表: {archive.namelist()}")
+            print(f"помилка: файл '{target_md_filename}' 在ZIP压缩包中未找到.")
+            print(f"压缩包中的可用файл列表: {archive.namelist()}")
             return None
 
         # --- 后续代码使用 target_md_filename ---
-        print(f"正在读取文件 '{target_md_filename}'...")
+        print(f"正在读取файл '{target_md_filename}'...")
         md_content_bytes = archive.read(target_md_filename)
-        print(f"文件 '{target_md_filename}' 已读取。")
+        print(f"файл '{target_md_filename}' 已读取.")
 
         # 自动检测编码，解码时忽略无法解码的字节
         result = charset_normalizer.from_bytes(md_content_bytes).best()
@@ -162,10 +162,10 @@ def embed_inline_image_from_zip(zip_bytes: bytes, filename_in_zip: str | None = 
         else:
             detected_encoding = encoding
         md_content_text = md_content_bytes.decode(detected_encoding, errors='ignore')
-        print(f"文件内容已使用 '{detected_encoding}' 编码解码。")
+        print(f"файл内容已使用 '{detected_encoding}' 编码解码.")
 
         print("开始处理Markdown中的图片...")
-        # 获取Markdown文件在ZIP包内的基本目录
+        # 获取Markdownфайл在ZIP包内的基本目录
         base_md_path_in_zip = os.path.dirname(target_md_filename)
 
         def replace_image_with_base64(match):
@@ -192,23 +192,23 @@ def embed_inline_image_from_zip(zip_bytes: bytes, filename_in_zip: str | None = 
                     mime_type = mime_map.get(ext)
 
                 if not mime_type:
-                    print(f"    警告: 无法确定图片 '{image_path_in_zip}' 的MIME类型。跳过内联。")
+                    print(f"    警告: 无法确定图片 '{image_path_in_zip}' 的MIME类型.跳过内联.")
                     return match.group(0)
 
                 base64_encoded_data = base64.b64encode(image_bytes).decode('utf-8')
                 new_image_tag = f"![{alt_text}](data:{mime_type};base64,{base64_encoded_data})"
                 return new_image_tag
             except KeyError:
-                print(f"    警告: 图片 '{image_path_in_zip}' 在ZIP压缩包中未找到。原始链接将被保留。")
+                print(f"    警告: 图片 '{image_path_in_zip}' 在ZIP压缩包中未找到.原始链接将被保留.")
                 return match.group(0)
             except Exception as e_img:
-                print(f"    错误: 处理图片 '{image_path_in_zip}' 时发生错误: {e_img}。原始链接将被保留。")
+                print(f"    помилка: 处理图片 '{image_path_in_zip}' 时发生помилка: {e_img}.原始链接将被保留.")
                 return match.group(0)
 
         image_regex = r"!\[(.*?)\]\((.*?)\)"
         modified_md_content = re.sub(image_regex, replace_image_with_base64, md_content_text)
 
-        print("图片处理完成。")
+        print("图片处理完成.")
         return modified_md_content
 
 
@@ -217,7 +217,7 @@ def unembed_base64_images_to_zip(markdown: str, markdown_name: str, image_folder
         image_folder = os.path.join(temp_dir, image_folder_name)
         os.makedirs(image_folder, exist_ok=True)
 
-        # 修改正则：使用 [\s\S] 来匹配包括换行符在内的所有字符
+        # 修改正则：使用 [\s\S] 来匹配包括换行符在内的所有символів
         # base64数据可能包含换行符，需要正确匹配
         pattern = r"!\[([^\]]*)\]\(data:([^;]+);base64,([\s\S]*?)\)"
 
@@ -226,8 +226,8 @@ def unembed_base64_images_to_zip(markdown: str, markdown_name: str, image_folder
             mime_type = match.group(2)
             b64data_raw = match.group(3)
 
-            # 强制清洗数据：移除所有非 Base64 合法字符（如中文、空格、换行符等）
-            # Base64 字符集只包含 A-Z, a-z, 0-9, +, /, =
+            # 强制清洗数据：移除所有非 Base64 合法символів（如中文、空格、换行符等）
+            # Base64 символів集只包含 A-Z, a-z, 0-9, +, /, =
             b64data_clean = re.sub(r'[^A-Za-z0-9+/=]', '', b64data_raw)
 
             # 简单的扩展名推断
@@ -277,19 +277,19 @@ def unembed_base64_images_to_zip(markdown: str, markdown_name: str, image_folder
 
 def format_markdown_latex(markdown_text: str) -> str:
     """
-    格式化包含LaTeX数学公式的Markdown文本。
+    格式化包含LaTeX数学公式的Markdown文本.
 
     这个函数会确保每个 $$...$$ 公式块前后都有适当的空行，
-    以便markdown解析器能够正确地识别和渲染这些块级公式。
+    以便markdown解析器能够正确地识别和渲染这些块级公式.
 
     同时，专门处理HTML表格内部的公式，将 $...$ 转换为 \\(...\\)，
-    这样markdown解析器就能正确地解析它们了。
+    这样markdown解析器就能正确地解析它们了.
 
     Args:
-        markdown_text: 包含LaTeX公式的原始Markdown字符串。
+        markdown_text: 包含LaTeX公式的原始Markdownсимволів串.
 
     Returns:
-        格式化后的Markdown字符串。
+        格式化后的Markdownсимволів串.
     """
     # 1. 专门处理HTML表格内部的公式
     processed = re.sub(r'(<table[\s\S]*?</table>)', process_table_formulas, markdown_text)
@@ -300,7 +300,7 @@ def format_markdown_latex(markdown_text: str) -> str:
     # 3. 清理多余的空行（连续多个换行）
     processed = re.sub(r'\n\s*\n\s*\n+', '\n\n', processed)
 
-    # 4. 处理字符串开头和结尾的空行
+    # 4. 处理символів串开头和结尾的空行
     processed = processed.strip('\n') + '\n' if processed and processed[-1] != '\n' else processed.strip('\n')
 
     return processed
@@ -308,7 +308,7 @@ def format_markdown_latex(markdown_text: str) -> str:
 
 def process_table_formulas(match):
     """
-    处理HTML表格内部的公式，将 $...$ 转换为 \\(...\\)。
+    处理HTML表格内部的公式，将 $...$ 转换为 \\(...\\).
     """
     table_html = match.group(0)
     # 转换 $...$ 为 \(...\)
@@ -322,7 +322,7 @@ def extract_and_process_html_tables(markdown_text: str) -> str:
     """
     提取markdown文本中的HTML表格，
     将表格内部的 $...$ 和 $$...$$ 公式转换为 LaTeX 格式，
-    这样在markdown解析后，KaTeX能够正确地渲染它们。
+    这样在markdown解析后，KaTeX能够正确地渲染它们.
     """
     # 找到所有HTML表格
     import uuid

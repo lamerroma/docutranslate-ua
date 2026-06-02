@@ -69,14 +69,14 @@ class MarkdownBasedWorkflow(Workflow[MarkdownBasedWorkflowConfig, Document, Mark
 
         if self.document_original.suffix.lower() == ".zip":
             self.document_original = self._get_md_from_zip(self.document_original)
-        # 获取缓存的解析后文件
+        # 获取缓存的解析后файл
         document_cached = md_based_convert_cacher.get_cached_result(self.document_original, convert_engin,
                                                                     convert_config)
         if document_cached:
             self.attachment.add_document("md_cached", document_cached.copy())
             return document_cached
 
-        # 未缓存则解析文件
+        # 未缓存则解析файл
         if convert_engin in self._converter_factory:
             converter_class, config_class = self._converter_factory[convert_engin]
             if config_class and not isinstance(convert_config, config_class):
@@ -89,14 +89,14 @@ class MarkdownBasedWorkflow(Workflow[MarkdownBasedWorkflowConfig, Document, Mark
         if hasattr(converter, "attachments"):
             for attachment in converter.attachments:
                 self.attachment.add_attachment(attachment)
-        # 缓存解析后文件
+        # 缓存解析后файл
         md_based_convert_cacher.cache_result(document_md, self.document_original, convert_engin, convert_config)
 
         return document_md
 
     def _get_md_from_zip(self, document: Document) -> Document:
         assert document.suffix.lower() == ".zip"
-        self.logger.info("传入zip文件，正在自动组合markdown文本与图片")
+        self.logger.info("Отримано zip-файл, автоматично збираю markdown-текст та зображення")
         content_byte = embed_inline_image_from_zip(document.content).encode()
         return document.from_bytes(content_byte, suffix=".md", stem=document.stem)
 
@@ -110,7 +110,7 @@ class MarkdownBasedWorkflow(Workflow[MarkdownBasedWorkflowConfig, Document, Mark
 
     def translate(self) -> Self:
         # 解析文档阶段
-        self.progress_tracker.update(percent=10, message="正在解析文档...")
+        self.progress_tracker.update(percent=10, message="Розбираю документ...")
         convert_engine, convert_config, translator_config, translator = self._pre_translate(self.document_original)
         self._translator = translator  # 保存translator引用
         document_md = self._get_document_md(convert_engine, convert_config)
@@ -120,16 +120,16 @@ class MarkdownBasedWorkflow(Workflow[MarkdownBasedWorkflowConfig, Document, Mark
 
         # 保存术语表阶段
         if translator.glossary.glossary_dict:
-            self.progress_tracker.update(percent=95, message="正在保存术语表...")
+            self.progress_tracker.update(percent=95, message="Зберігаю глосарій...")
             self.attachment.add_document("glossary", Glossary.glossary_dict2csv(translator.glossary.glossary_dict))
 
-        self.progress_tracker.update(percent=100, message="翻译完成")
+        self.progress_tracker.update(percent=100, message="Переклад завершено")
         self.document_translated = document_md
         return self
 
     async def translate_async(self) -> Self:
         # 解析文档阶段
-        self.progress_tracker.update(percent=10, message="正在解析文档...")
+        self.progress_tracker.update(percent=10, message="Розбираю документ...")
         convert_engine, convert_config, translator_config, translator = self._pre_translate(self.document_original)
         self._translator = translator  # 保存translator引用
         document_md = await asyncio.to_thread(self._get_document_md, convert_engine, convert_config)
@@ -139,16 +139,16 @@ class MarkdownBasedWorkflow(Workflow[MarkdownBasedWorkflowConfig, Document, Mark
 
         # 保存术语表阶段
         if translator.glossary.glossary_dict:
-            self.progress_tracker.update(percent=95, message="正在保存术语表...")
+            self.progress_tracker.update(percent=95, message="Зберігаю глосарій...")
             self.attachment.add_document("glossary", Glossary.glossary_dict2csv(translator.glossary.glossary_dict))
 
-        self.progress_tracker.update(percent=100, message="翻译完成")
+        self.progress_tracker.update(percent=100, message="Переклад завершено")
         self.document_translated = document_md
         return self
 
     def get_statistics(self) -> dict:
         """
-        获取翻译任务的统计信息。
+        获取翻译任务的统计信息.
 
         Returns:
             dict: 包含glossary、translation和total三个部分的统计信息

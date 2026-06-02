@@ -7,14 +7,14 @@ from json_repair import json_repair
 
 
 def get_json_size(js: dict) -> int:
-    """计算字典转换成JSON字符串并以UTF-8编码后的字节大小"""
+    """计算字典转换成JSONсимволів串并以UTF-8编码后的字节大小"""
     return len(json.dumps(js, ensure_ascii=False).encode('utf-8'))
 
 
 def segments2json_chunks(segments: list[str], chunk_size_max: int) -> tuple[dict[str, str],
 list[dict[str, str]], list[tuple[int, int]]]:
     """
-    将文本段列表（segments）转换为多个JSON块。
+    将文本段列表（segments）转换为多个JSON块.
     (函数注释不变)
     """
 
@@ -68,7 +68,7 @@ list[dict[str, str]], list[tuple[int, int]]]:
         prospective_chunk[str(key)] = val
 
         # 修复bug: 即使chunk为空，如果 prospective_chunk（即单个元素）已超限，
-        # 也应该先提交旧的chunk。
+        # 也应该先提交旧的chunk.
         if get_json_size(prospective_chunk) > chunk_size_max and chunk:
             json_chunks_list.append(chunk)
             chunk = {str(key): val}
@@ -79,7 +79,7 @@ list[dict[str, str]], list[tuple[int, int]]]:
         json_chunks_list.append(chunk)
 
     # ==================== 核心修正 ====================
-    # 根据完整的 new_segments 列表构建最终的、完整的 js 字典
+    # 根据完整的 new_segments 列表Будую最终的、完整的 js 字典
     # 这确保了第一个返回值是完整的
     js = {str(i): segment for i, segment in enumerate(new_segments)}
     # ================================================

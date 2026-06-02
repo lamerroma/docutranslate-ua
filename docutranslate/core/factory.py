@@ -46,12 +46,12 @@ from docutranslate.workflow.xlsx_workflow import XlsxWorkflowConfig, XlsxWorkflo
 
 def create_workflow_from_payload(payload: TranslatePayload, logger: logging.Logger = None) -> Workflow:
     """
-    根据扁平化的 Payload 配置对象，构建并返回对应的 Workflow 实例。
+    根据扁平化的 Payload 配置对象，Будую并返回对应的 Workflow 实例.
     """
     if logger is None:
         logger = logging.getLogger("docutranslate.factory")
 
-    # 辅助函数：构建术语表生成配置
+    # 辅助函数：Будую术语表生成配置
     def build_glossary_agent_config():
         if payload.glossary_generate_enable and payload.glossary_agent_config:
             return GlossaryAgentConfig(logger=logger, **payload.glossary_agent_config.model_dump())

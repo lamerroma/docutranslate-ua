@@ -64,7 +64,7 @@ class JsonTranslator(AiTranslator):
         self.json_paths = config.json_paths
 
     def _get_key_or_index_from_path(self, path) -> Any:
-        """从jsonpath_ng的Path对象中提取键或索引。"""
+        """从jsonpath_ng的Path对象中提取键或索引."""
         if hasattr(path, 'fields') and path.fields:
             return path.fields[0]
         if hasattr(path, 'index'):
@@ -73,12 +73,12 @@ class JsonTranslator(AiTranslator):
 
     def _collect_strings_for_translation(self, content: dict) -> Tuple[List[str], List[Tuple[Any, Any]]]:
         """
-        根据jsonpath查找匹配项，并递归地从中收集所有字符串以进行翻译。
-        为了防止重复，会跟踪每个字符串的精确位置。
+        根据jsonpath查找匹配项，并递归地从中收集所有символів串以进行翻译.
+        为了防止重复，会跟踪每个символів串的精确位置.
 
         返回:
-            - original_texts: 一个包含所有待翻译字符串的列表。
-            - update_targets: 一个包含更新信息的目标列表，每个元素为 (container, key_or_index)。
+            - original_texts: 一个包含所有待翻译символів串的列表.
+            - update_targets: 一个包含更新信息的目标列表，每个元素为 (container, key_or_index).
         """
         original_texts = []
         update_targets = []
@@ -87,7 +87,7 @@ class JsonTranslator(AiTranslator):
 
         # 辅助递归函数，用于遍历json对象
         def _traverse(node: Any, container: Any, key_or_index: Any):
-            # 如果当前节点是字符串，并且其位置尚未被记录
+            # 如果当前节点是символів串，并且其位置尚未被记录
             target_id = (id(container), key_or_index)
             if isinstance(node, str):
                 if target_id not in seen_targets:
@@ -121,7 +121,7 @@ class JsonTranslator(AiTranslator):
 
     def _apply_translations(self, update_targets: List[Tuple[Any, Any]], translated_texts: List[str]):
         """
-        使用翻译后的文本更新原始JSON内容。
+        使用翻译后的文本更新原始JSON内容.
         """
         if len(update_targets) != len(translated_texts):
             raise ValueError("The number of translation targets does not match the number of translated texts.")
@@ -134,36 +134,36 @@ class JsonTranslator(AiTranslator):
 
     def _decode_content(self, document: Document) -> str:
         """
-        使用 charset_normalizer 自动检测文档编码并解码内容。
+        使用 charset_normalizer 自动检测文档编码并解码内容.
         """
         result = charset_normalizer.from_bytes(document.content).best()
         if result is None:
-            self.logger.error("无法检测JSON文件编码")
+            self.logger.error("Не вдалось визначити кодування JSON-файлу")
             return ""
         detected_encoding = result.encoding
         try:
             return document.content.decode(detected_encoding)
         except (UnicodeDecodeError, AttributeError) as e:
-            self.logger.error(f"无法使用检测到的编码 {detected_encoding} 解码文件: {e}")
+            self.logger.error(f"Не вдалось використати виявлене кодування {detected_encoding} декодування файлу: {e}")
             return ""
 
     def translate(self, document: Document) -> Self:
         """
-        主方法：提取、翻译并更新JSON文档中的指定内容。
+        主方法：提取、翻译并更新JSON文档中的指定内容.
 
         流程:
-        1. 解析输入的JSON文档。
-        2. 根据jsonpath找到匹配对象，并递归遍历它们以提取所有字符串。
-        3. 批量发送提取的字符串进行翻译。
-        4. 将翻译回来的文本根据其原始位置，更新回JSON对象中。
-        5. 将更新后的 content 写回 document。
+        1. 解析输入的JSON文档.
+        2. 根据jsonpath找到匹配对象，并递归遍历它们以提取所有символів串.
+        3. 批量发送提取的символів串进行翻译.
+        4. 将翻译回来的文本根据其原始位置，更新回JSON对象中.
+        5. 将更新后的 content 写回 document.
         """
         content_str = self._decode_content(document)
         if not content_str:
             return self
         content = json_repair.loads(content_str)
 
-        # 步骤 1: 提取所有需要翻译的字符串及其位置
+        # 步骤 1: 提取所有需要翻译的символів串及其位置
         original_texts, update_targets = self._collect_strings_for_translation(content)
 
         if not original_texts:
@@ -188,7 +188,7 @@ class JsonTranslator(AiTranslator):
             translated_texts = original_texts
 
         if len(original_texts) != len(translated_texts):
-            raise ValueError("翻译服务返回的项目数量与发送的数量不匹配。")
+            raise ValueError("翻译服务返回的项目数量与发送的数量不匹配.")
 
         # 步骤 3: 将翻译结果写回原始JSON对象
         self._apply_translations(update_targets, translated_texts)
@@ -202,7 +202,7 @@ class JsonTranslator(AiTranslator):
             return self
         content = json_repair.loads(content_str)
 
-        # 步骤 1: 提取所有需要翻译的字符串及其位置
+        # 步骤 1: 提取所有需要翻译的символів串及其位置
         original_texts, update_targets = self._collect_strings_for_translation(content)
 
         if not original_texts:
@@ -227,7 +227,7 @@ class JsonTranslator(AiTranslator):
             translated_texts = original_texts
 
         if len(original_texts) != len(translated_texts):
-            raise ValueError("翻译服务返回的项目数量与发送的数量不匹配。")
+            raise ValueError("翻译服务返回的项目数量与发送的数量不匹配.")
 
         # 步骤 3: 将翻译结果写回原始JSON对象
         self._apply_translations(update_targets, translated_texts)

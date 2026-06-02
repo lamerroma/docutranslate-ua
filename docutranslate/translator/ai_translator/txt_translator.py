@@ -15,30 +15,30 @@ from docutranslate.translator.ai_translator.base import AiTranslatorConfig, AiTr
 @dataclass
 class TXTTranslatorConfig(AiTranslatorConfig):
     """
-    TXTTranslator的配置类。
+    TXTTranslator的配置类.
 
     Attributes:
         insert_mode (Literal["replace", "append", "prepend"]):
-            指定如何插入翻译文本的模式。
-            ▪ "replace": 用译文替换原文。
+            指定如何插入翻译文本的模式.
+            ▪ "replace": 用译文替换原文.
 
-            ▪ "append": 将译文追加到原文后面。
+            ▪ "append": 将译文追加到原文后面.
 
-            ▪ "prepend": 将译文前置到原文前面。
+            ▪ "prepend": 将译文前置到原文前面.
 
-            默认为 "replace"。
+            默认为 "replace".
         separator (str):
-            在 "append" 或 "prepend" 模式下，用于分隔原文和译文的字符串。
-            默认为换行符 "\n"。
+            在 "append" 或 "prepend" 模式下，用于分隔原文和译文的символів串.
+            默认为换行符 "\n".
         segment_mode (Literal["line", "paragraph", "none"]):
-            分段模式。
+            分段模式.
             ▪ "line": 按行分段（每行独立翻译）
 
             ▪ "paragraph": 按段落分段（连续非空行合并为段落）
 
             ▪ "none": 不分段（全文视为一个段落）
 
-            默认为 "line"。
+            默认为 "line".
     """
     insert_mode: Literal["replace", "append", "prepend"] = "replace"
     separator: str = "\n"
@@ -47,16 +47,16 @@ class TXTTranslatorConfig(AiTranslatorConfig):
 
 class TXTTranslator(AiTranslator):
     """
-    一个用于翻译纯文本 (.txt) 文件的翻译器。
-    支持按行或按段落两种分段模式进行翻译。
+    一个用于翻译纯文本 (.txt) файл的翻译器.
+    支持按行或按段落两种分段模式进行翻译.
     """
 
     def __init__(self, config: TXTTranslatorConfig):
         """
-        初始化 TXTTranslator。
+        初始化 TXTTranslator.
 
         Args:
-            config (TXTTranslatorConfig): 翻译器的配置。
+            config (TXTTranslatorConfig): 翻译器的конфігурацію.
         """
         super().__init__(config=config)
         self.chunk_size = config.chunk_size
@@ -104,25 +104,25 @@ class TXTTranslator(AiTranslator):
 
     def _pre_translate(self, document: Document) -> List[str]:
         """
-        预处理步骤：根据分段模式解析TXT文件。
+        预处理步骤：根据分段模式解析TXTфайл.
 
         Args:
-            document (Document): 待处理的文档对象。
+            document (Document): 待处理的文档对象.
 
         Returns:
-            List[str]: 分段后的文本列表。
+            List[str]: 分段后的文本列表.
         """
         # 使用 charset_normalizer 自动检测编码
         result = charset_normalizer.from_bytes(document.content).best()
         if result is None:
-            self.logger.error("无法检测TXT文件编码")
+            self.logger.error("Не вдалось визначити кодування TXT-файлу")
             return []
         detected_encoding = result.encoding
-        self.logger.info(f"检测到TXT文件编码: {detected_encoding}")
+        self.logger.info(f"Виявлено кодування TXT-файлу: {detected_encoding}")
         try:
             txt_content = document.content.decode(detected_encoding)
         except (UnicodeDecodeError, AttributeError) as e:
-            self.logger.error(f"无法使用检测到的编码 {detected_encoding} 解码文件: {e}")
+            self.logger.error(f"Не вдалось використати виявлене кодування {detected_encoding} декодування файлу: {e}")
             return []
 
         if self.segment_mode == "line":
@@ -134,21 +134,21 @@ class TXTTranslator(AiTranslator):
 
     def _segment_by_line(self, txt_content: str) -> List[str]:
         """
-        按行分段模式：每行作为独立分段。
+        按行分段模式：每行作为独立分段.
         """
         return txt_content.splitlines()
 
     def _segment_by_paragraph(self, txt_content: str) -> List[str]:
         """
-        按段落分段模式：使用正则表达式按空行分割，并保留分隔符。
+        按段落分段模式：使用正则表达式按空行分割，并保留分隔符.
         """
         segments = re.split(r'(\n\s*\n)', txt_content)
         return [s for s in segments if s]
 
     def _after_translate(self, translated_texts: List[str], original_texts: List[str]) -> bytes:
         """
-        翻译后处理步骤：根据分段模式重建文档。
-        此函数现在接收两个长度完全相同的对齐列表。
+        翻译后处理步骤：根据分段模式重建文档.
+        此函数现在接收两个长度完全相同的对齐列表.
         """
         if self.segment_mode == "line":
             return self._reconstruct_by_line(translated_texts, original_texts)
@@ -159,11 +159,11 @@ class TXTTranslator(AiTranslator):
 
     def _reconstruct_by_line(self, translated_lines: List[str], original_lines: List[str]) -> bytes:
         """
-        按行模式重建文档。
+        按行模式重建文档.
         """
         processed_lines = []
         for i, original_line in enumerate(original_lines):
-            # 如果原文是空行或仅包含空白字符，则直接保留
+            # 如果原文是空行或仅包含空白символів，则直接保留
             if not original_line.strip():
                 processed_lines.append(original_line)
                 continue
@@ -178,14 +178,14 @@ class TXTTranslator(AiTranslator):
             elif self.insert_mode == "prepend":
                 processed_lines.append(translated_line.strip() + self.separator + original_line.strip())
             else:
-                self.logger.error(f"不正确的insert_mode参数: '{self.insert_mode}'")
+                self.logger.error(f"Невірний параметр insert_mode: '{self.insert_mode}'")
                 processed_lines.append(translated_line)
 
         return "\n".join(processed_lines).encode('utf-8')
 
     def _reconstruct_by_paragraph(self, translated_segments: List[str], original_segments: List[str]) -> bytes:
         """
-        按段落模式重建文档。
+        按段落模式重建文档.
         """
         result_parts = []
         for i, original_segment in enumerate(original_segments):
@@ -210,7 +210,7 @@ class TXTTranslator(AiTranslator):
 
     def _reconstruct_none(self, translated_texts: List[str], original_texts: List[str]) -> bytes:
         """
-        不分段模式重建文档。
+        不分段模式重建文档.
         """
         if not translated_texts or not original_texts:
             return b""
@@ -225,19 +225,19 @@ class TXTTranslator(AiTranslator):
         elif self.insert_mode == "prepend":
             result_text = translated_text + self.separator + original_text
         else:
-            self.logger.error(f"不正确的insert_mode参数: '{self.insert_mode}'")
+            self.logger.error(f"Невірний параметр insert_mode: '{self.insert_mode}'")
             result_text = translated_text
 
         return result_text.encode('utf-8')
 
     def translate(self, document: Document) -> Self:
         """
-        同步翻译TXT文档。
+        同步翻译TXT文档.
         """
         original_segments = self._pre_translate(document)
 
         if not original_segments:
-            self.logger.info("\n文件中没有找到需要翻译的文本内容。")
+            self.logger.info("\nУ файлі не знайдено тексту для перекладу.")
             return self
 
         texts_to_translate = [text for text in original_segments if text.strip()]
@@ -267,12 +267,12 @@ class TXTTranslator(AiTranslator):
 
     async def translate_async(self, document: Document) -> Self:
         """
-        异步翻译TXT文档。
+        异步翻译TXT文档.
         """
         original_segments = await asyncio.to_thread(self._pre_translate, document)
 
         if not original_segments:
-            self.logger.info("\n文件中没有找到需要翻译的文本内容。")
+            self.logger.info("\nУ файлі не знайдено тексту для перекладу.")
             return self
 
         texts_to_translate = [text for text in original_segments if text.strip()]

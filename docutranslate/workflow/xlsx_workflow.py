@@ -47,7 +47,7 @@ class XlsxWorkflow(Workflow[XlsxWorkflowConfig, Document, Document], HTMLExporta
         suffix = document.suffix
         converter_types = self._converter_factory.get(suffix.lower())
         if converter_types is None:
-            raise ValueError(f"该工作流不支持{suffix}格式，请转为xlsx或csv格式")
+            raise ValueError(f"Цей робочий процес не підтримує{suffix}формат, конвертуйте у xlsx або csv")
         converter_type, converter_config = converter_types
         converter = converter_type(converter_config)
 
@@ -61,11 +61,11 @@ class XlsxWorkflow(Workflow[XlsxWorkflowConfig, Document, Document], HTMLExporta
 
     def translate(self) -> Self:
         # 解析xlsx阶段
-        self.progress_tracker.update(percent=5, message="正在解析xlsx文件...")
+        self.progress_tracker.update(percent=5, message="Розбираю xlsx-файл...")
         document_xlsx = self._get_document_xlsx(self.document_original)
 
         # 准备阶段
-        self.progress_tracker.update(percent=10, message="正在准备翻译...")
+        self.progress_tracker.update(percent=10, message="Готую переклад...")
         document, translator = self._pre_translate(document_xlsx)
         self._translator = translator  # 保存translator引用
 
@@ -74,20 +74,20 @@ class XlsxWorkflow(Workflow[XlsxWorkflowConfig, Document, Document], HTMLExporta
 
         # 保存术语表阶段
         if translator.glossary.glossary_dict:
-            self.progress_tracker.update(percent=95, message="正在保存术语表...")
+            self.progress_tracker.update(percent=95, message="Зберігаю глосарій...")
             self.attachment.add_document("glossary", Glossary.glossary_dict2csv(translator.glossary.glossary_dict))
 
-        self.progress_tracker.update(percent=100, message="翻译完成")
+        self.progress_tracker.update(percent=100, message="Переклад завершено")
         self.document_translated = document
         return self
 
     async def translate_async(self) -> Self:
         # 解析xlsx阶段
-        self.progress_tracker.update(percent=5, message="正在解析xlsx文件...")
+        self.progress_tracker.update(percent=5, message="Розбираю xlsx-файл...")
         document_xlsx = await asyncio.to_thread(self._get_document_xlsx, self.document_original)
 
         # 准备阶段
-        self.progress_tracker.update(percent=10, message="正在准备翻译...")
+        self.progress_tracker.update(percent=10, message="Готую переклад...")
         document, translator = self._pre_translate(document_xlsx)
         self._translator = translator  # 保存translator引用
 
@@ -96,16 +96,16 @@ class XlsxWorkflow(Workflow[XlsxWorkflowConfig, Document, Document], HTMLExporta
 
         # 保存术语表阶段
         if translator.glossary.glossary_dict:
-            self.progress_tracker.update(percent=95, message="正在保存术语表...")
+            self.progress_tracker.update(percent=95, message="Зберігаю глосарій...")
             self.attachment.add_document("glossary", Glossary.glossary_dict2csv(translator.glossary.glossary_dict))
 
-        self.progress_tracker.update(percent=100, message="翻译完成")
+        self.progress_tracker.update(percent=100, message="Переклад завершено")
         self.document_translated = document
         return self
 
     def get_statistics(self) -> dict:
         """
-        获取翻译任务的统计信息。
+        获取翻译任务的统计信息.
 
         Returns:
             dict: 包含glossary、translation和total三个部分的统计信息

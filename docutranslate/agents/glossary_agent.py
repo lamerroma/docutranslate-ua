@@ -56,7 +56,7 @@ def get_original_segments(prompt: str):
     if match:
         return match.group(1)
     else:
-        raise ValueError("无法从prompt中提取初始文本")
+        raise ValueError("Не вдалось витягти початковий текст з prompt")
 
 
 def get_target_segments(result: str):
@@ -87,17 +87,17 @@ You are a professional glossary extractor
 
     def get_continue_prompt(self, accumulated_result: str, prompt: str) -> str:
         """
-        继续获取时的提示词。
-        只返回新增的术语，而不是完整的术语表。
+        继续获取时的提示词.
+        只返回新增的术语，而不是完整的术语表.
         """
-        return f"""你之前的术语表输出被截断了。
+        return f"""你之前的术语表输出被截断了.
 
 之前已输出的内容:
 ```json
 {accumulated_result}
 ```
 
-请继续输出后续的术语。只输出新增的数组元素，格式为JSON数组。
+请继续输出后续的术语.只输出新增的数组元素，格式为JSON数组.
 例如：请继续输出更多术语，如：
 [{{"src":"新术语","dst":"译文"}}]
 
@@ -109,9 +109,9 @@ You are a professional glossary extractor
 
     def merge_continue_result(self, accumulated_result: str, additional_result: str) -> str:
         """
-        合并继续获取的结果。
-        处理追加模式的数组合并：将追加的术语合并到已有的数组中。
-        自动去重：如果 additional 中有重复的 src，保留 accumulated 中的版本。
+        合并继续获取的结果.
+        处理追加模式的数组合并：将追加的术语合并到已有的数组中.
+        自动去重：如果 additional 中有重复的 src，保留 accumulated 中的版本.
         """
         try:
             # 尝试解析两个部分
@@ -152,8 +152,8 @@ You are a professional glossary extractor
         repaired_result = get_target_segments(result)
         if not repaired_result:
             if origin_prompt.strip() != "":
-                logger.error("result为空值但原文不为空")
-                raise AgentResultError("result为空值但原文不为空")
+                logger.error("result порожній, але оригінал не порожній")
+                raise AgentResultError("result порожній, але оригінал не порожній")
             return []
         try:
             if not isinstance(repaired_result, list):
@@ -175,18 +175,18 @@ You are a professional glossary extractor
         try:
             origin_prompt = get_original_segments(origin_prompt)
         except ValueError as e:
-            logger.error(f"无法从prompt中提取初始文本: {e}")
+            logger.error(f"Не вдалось витягти початковий текст з prompt: {e}")
             return []
         if origin_prompt.strip() == "":
             return []
         try:
             return json_repair.loads(origin_prompt)
         except (RuntimeError, JSONDecodeError):
-            logger.error(f"原始prompt也不是有效的json格式: {origin_prompt}")
+            logger.error(f"Оригінальний prompt теж не валідний JSON: {origin_prompt}")
             return []  # 如果原始prompt也无效，返回空列表
 
     def send_segments(self, segments: list[str], chunk_size: int):
-        self.logger.info(f"开始提取术语表,to_lang:{self.to_lang}")
+        self.logger.info(f"Починаю витягувати глосарій, to_lang:{self.to_lang}")
         result = {}
         indexed_originals, chunks, merged_indices_list = segments2json_chunks(segments, chunk_size)
         prompts = [generate_prompt(json.dumps(chunk, ensure_ascii=False), self.to_lang) for chunk in chunks]
@@ -196,20 +196,20 @@ You are a professional glossary extractor
         for chunk in translated_chunks:
             try:
                 if not isinstance(chunk, list):
-                    self.logger.error(f"接收到的chunk不是有效的列表，已跳过: {chunk}")
+                    self.logger.error(f"Отриманий chunk не є валідним списком, пропущено: {chunk}")
                     continue
                 glossary_dict = {d["src"]: d["dst"] for d in chunk if isinstance(d, dict) and "src" in d and "dst" in d}
                 result = glossary_dict | result
             except (TypeError, KeyError) as e:
-                self.logger.error(f"处理glossary chunk时发生键或类型错误，已跳过。Chunk: {chunk}, 错误: {e.__repr__()}")
+                self.logger.error(f"Помилка ключа або типу під час обробки glossary chunk, пропущено. Chunk: {chunk}, помилка: {e.__repr__()}")
             except Exception as e:
-                self.logger.error(f"处理glossary chunk时发生未知错误: {e.__repr__()}")
+                self.logger.error(f"Невідома помилка під час обробки glossary chunk: {e.__repr__()}")
 
-        self.logger.info("术语表提取完成")
+        self.logger.info("Витяг глосарія завершено")
         return result
 
     async def send_segments_async(self, segments: list[str], chunk_size: int):
-        self.logger.info(f"开始提取术语表,to_lang:{self.to_lang}")
+        self.logger.info(f"Починаю витягувати глосарій, to_lang:{self.to_lang}")
         result = {}
         indexed_originals, chunks, merged_indices_list = await asyncio.to_thread(segments2json_chunks, segments,
                                                                                  chunk_size)
@@ -220,14 +220,14 @@ You are a professional glossary extractor
         for chunk in translated_chunks:
             try:
                 if not isinstance(chunk, list):
-                    self.logger.error(f"接收到的chunk不是有效的列表，已跳过: {chunk}")
+                    self.logger.error(f"Отриманий chunk не є валідним списком, пропущено: {chunk}")
                     continue
                 glossary_dict = {d["src"]: d["dst"] for d in chunk if isinstance(d, dict) and "src" in d and "dst" in d}
                 result = result | glossary_dict
             except (TypeError, KeyError) as e:
-                self.logger.error(f"处理glossary chunk时发生键或类型错误，已跳过。Chunk: {chunk}, 错误: {e.__repr__()}")
+                self.logger.error(f"Помилка ключа або типу під час обробки glossary chunk, пропущено. Chunk: {chunk}, помилка: {e.__repr__()}")
             except Exception as e:
-                self.logger.error(f"处理glossary chunk时发生未知错误: {e.__repr__()}")
+                self.logger.error(f"Невідома помилка під час обробки glossary chunk: {e.__repr__()}")
 
-        self.logger.info("术语表提取完成")
+        self.logger.info("Витяг глосарія завершено")
         return result

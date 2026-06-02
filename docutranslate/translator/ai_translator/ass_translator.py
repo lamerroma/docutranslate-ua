@@ -69,19 +69,19 @@ class AssTranslator(AiTranslator):
 
     def _pre_translate(self, document: Document):
         """
-        解析 ASS 文件，提取所有 Dialogue 行的文本。
+        解析 ASS файл，提取所有 Dialogue 行的文本.
         返回：subs 对象、待翻译条目列表、原文列表
         """
         # 使用 charset_normalizer 自动检测编码
         result = charset_normalizer.from_bytes(document.content).best()
         if result is None:
-            self.logger.error("无法检测ASS文件编码")
+            self.logger.error("Не вдалось визначити кодування ASS-файлу")
             return None, [], []
         detected_encoding = result.encoding
         try:
             content_str = document.content.decode(detected_encoding)
         except (UnicodeDecodeError, AttributeError) as e:
-            self.logger.error(f"无法使用检测到的编码 {detected_encoding} 解码文件: {e}")
+            self.logger.error(f"Не вдалось використати виявлене кодування {detected_encoding} декодування файлу: {e}")
             return None, [], []
 
         subs = pysubs2.SSAFile.from_string(content_str)
@@ -102,7 +102,7 @@ class AssTranslator(AiTranslator):
 
     def _after_translate(self, subs, lines_to_translate, translated_texts, original_texts):
         """
-        将翻译结果写回 ASS 对象，根据 insert_mode 处理。
+        将翻译结果写回 ASS 对象，根据 insert_mode 处理.
         """
         if subs is None:
             return b""
@@ -122,9 +122,9 @@ class AssTranslator(AiTranslator):
             elif self.insert_mode == "prepend":
                 line.text = translated_text + ass_separator + original_text
             else:
-                self.logger.error(f"不支持的插入模式: {self.insert_mode}")
+                self.logger.error(f"Непідтримуваний режим вставки: {self.insert_mode}")
 
-        # 输出为字符串，再编码为 bytes
+        # 输出为символів串，再编码为 bytes
         output_str = subs.to_string(format_="ass")
         return output_str.encode('utf-8-sig')  # 带 BOM，兼容播放器
 
@@ -132,7 +132,7 @@ class AssTranslator(AiTranslator):
         subs, lines_to_translate, original_texts = self._pre_translate(document)
 
         if subs is None or not lines_to_translate:
-            print("\n未找到需要翻译的字幕行。")
+            print("\n未找到需要翻译的字幕行.")
             return self
 
         if self.glossary_agent:
@@ -159,7 +159,7 @@ class AssTranslator(AiTranslator):
         subs, lines_to_translate, original_texts = await asyncio.to_thread(self._pre_translate, document)
 
         if subs is None or not lines_to_translate:
-            print("\n未找到需要翻译的字幕行。")
+            print("\n未找到需要翻译的字幕行.")
             return self
 
         if self.glossary_agent:

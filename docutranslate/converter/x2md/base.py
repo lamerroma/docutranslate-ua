@@ -18,7 +18,7 @@ class X2MarkdownConverterConfig(ConverterConfig):
 
 class X2MarkdownConverter(Converter):
     """
-    负责将其它格式的文件转换为markdown
+    负责将其它格式的файл转换为markdown
     """
 
     @abstractmethod

@@ -19,7 +19,7 @@ from docutranslate.translator.ai_translator.base import AiTranslatorConfig, AiTr
 class XlsxTranslatorConfig(AiTranslatorConfig):
     insert_mode: Literal["replace", "append", "prepend"] = "replace"
     separator: str = "\n"
-    # 指定翻译区域列表。
+    # 指定翻译区域列表.
     translate_regions: Optional[List[str]] = None
     office_password: Optional[str] = None
 
@@ -93,7 +93,7 @@ class XlsxTranslator(AiTranslator):
         ET.register_namespace('x15ac', "http://schemas.microsoft.com/office/spreadsheetml/2010/11/ac")
 
     def _decrypt_if_needed(self, content: bytes) -> bytes:
-        """如果文件加密则解密，否则返回原内容"""
+        """如果файл加密则解密，否则返回原内容"""
         import msoffcrypto
         import msoffcrypto.exceptions
         from io import BytesIO
@@ -103,7 +103,7 @@ class XlsxTranslator(AiTranslator):
             office_file = msoffcrypto.OfficeFile(file_stream)
             if office_file.is_encrypted():
                 if not self.office_password:
-                    raise ValueError("此XLSX文件已加密，但未提供密码。")
+                    raise ValueError("此XLSXфайл已加密，但未提供密码.")
                 decrypted = BytesIO()
                 office_file.load_key(password=self.office_password)
                 office_file.decrypt(decrypted)
@@ -115,7 +115,7 @@ class XlsxTranslator(AiTranslator):
             file_stream.close()
 
     def _get_zipfile(self, content: bytes) -> zipfile.ZipFile:
-        """获取ZipFile对象，如果文件加密则先解密"""
+        """获取ZipFile对象，如果файл加密则先解密"""
         decrypted = self._decrypt_if_needed(content)
         return zipfile.ZipFile(BytesIO(decrypted), 'r')
 
@@ -124,18 +124,18 @@ class XlsxTranslator(AiTranslator):
     # =========================================================================
 
     def _tag_is(self, elem: ET.Element, tag_name: str) -> bool:
-        """判断元素的标签名是否匹配（忽略命名空间）。"""
+        """判断元素的标签名是否匹配（忽略命名空间）."""
         return elem.tag.endswith(f"}}{tag_name}") or elem.tag == tag_name
 
     def _find_child(self, parent: ET.Element, tag_name: str) -> Optional[ET.Element]:
-        """在直接子节点中查找指定标签（忽略命名空间）。"""
+        """在直接子节点中查找指定标签（忽略命名空间）."""
         for child in parent:
             if self._tag_is(child, tag_name):
                 return child
         return None
 
     def _sanitize_xml_text(self, text: str) -> str:
-        """移除 Excel XML 不允许的控制字符。"""
+        """移除 Excel XML 不允许的控制символів."""
         if not text:
             return ""
         # 移除 ASCII 0-8, 11-12, 14-31
@@ -239,7 +239,7 @@ class XlsxTranslator(AiTranslator):
                 else:
                     global_regions.append(boundaries)
             except Exception as e:
-                self.logger.warning(f"无法解析区域 '{region}': {e}")
+                self.logger.warning(f"Не вдалось розпарсити регіон '{region}': {e}")
 
         if global_regions:
             target_files = set(sheet_mapping.values())
@@ -442,7 +442,7 @@ class XlsxTranslator(AiTranslator):
                                 elem.clear()
 
         except Exception as e:
-            self.logger.error(f"XML解析失败: {e}", exc_info=True)
+            self.logger.error(f"Не вдалось розпарсити XML: {e}", exc_info=True)
         return list(texts_to_translate)
 
     def _rebuild_xml_all(self, original_content_bytes: bytes, translation_map: dict) -> bytes:
@@ -555,7 +555,7 @@ class XlsxTranslator(AiTranslator):
                             zf_out.writestr(item, content)
             return output_zip_io.getvalue()
         except Exception as e:
-            self.logger.error(f"XML重构失败: {e}", exc_info=True)
+            self.logger.error(f"Не вдалось перебудувати XML: {e}", exc_info=True)
             return original_content_bytes
 
     def translate(self, document: Document) -> Self:

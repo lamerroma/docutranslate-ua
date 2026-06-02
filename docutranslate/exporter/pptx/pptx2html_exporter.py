@@ -42,7 +42,7 @@ class PPTX2HTMLExporter(PPTXExporter):
         for i, slide in enumerate(prs.slides):
             # 处理隐藏幻灯片的逻辑
             # 注意: python-pptx 的 slide 对象可能没有 hidden 属性，取决于版本，
-            # 若需要严格过滤需检查 slide.element.get('show') 等，这里做基础遍历。
+            # 若需要严格过滤需检查 slide.element.get('show') 等，这里做基础遍历.
 
             slide_html = []
             slide_html.append(f'<div class="slide" id="slide-{i + 1}">')

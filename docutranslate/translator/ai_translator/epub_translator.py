@@ -24,12 +24,12 @@ class EpubTranslatorConfig(AiTranslatorConfig):
 
 class EpubTranslator(AiTranslator):
     """
-    一个用于翻译 EPUB 文件中内容的翻译器。
-    【高级版】此版本直接翻译HTML内容，以保留内联格式，并支持表格翻译。
+    一个用于翻译 EPUB файл中内容的翻译器.
+    【高级版】此版本直接翻译HTML内容，以保留内联格式，并支持表格翻译.
     【结构化修改版 v3】
-    1. 修复了 BeautifulSoup 自动添加 <html><body> 导致嵌套错误的问题。
-    2. 对 li, div, td, th 采用内部追加模式，保护文档结构。
-    3. 复制标签时自动移除 ID 属性，防止锚点冲突。
+    1. 修复了 BeautifulSoup 自动添加 <html><body> 导致嵌套помилка的问题.
+    2. 对 li, div, td, th 采用内部追加模式，保护文档结构.
+    3. 复制标签时自动移除 ID 属性，防止锚点冲突.
     """
 
     def __init__(self, config: EpubTranslatorConfig):
@@ -101,7 +101,7 @@ class EpubTranslator(AiTranslator):
         opf_path = root.find('cn:rootfiles/cn:rootfile', ns).get('full-path')
         opf_dir = os.path.dirname(opf_path)
 
-        # 解析 OPF 获取文件清单
+        # 解析 OPF 获取файл清单
         opf_xml = all_files.get(opf_path)
         if not opf_xml:
             raise ValueError(f"无效的 EPUB：找不到 {opf_path}")
@@ -124,7 +124,7 @@ class EpubTranslator(AiTranslator):
                 file_path = item_data['href']
                 content_bytes = all_files.get(file_path)
                 if not content_bytes:
-                    self.logger.warning(f"在 EPUB 中找不到文件: {file_path}")
+                    self.logger.warning(f"У EPUB не знайдено файл: {file_path}")
                     continue
 
                 if file_path not in soups:
@@ -282,7 +282,7 @@ class EpubTranslator(AiTranslator):
                 # 译文节点使用上面剥离好的 content_nodes
                 translated_nodes = content_nodes
 
-                # 构建分隔符 (容器内部使用 span/br，不使用 p/div 以防破坏行内流)
+                # Будую分隔符 (容器内部使用 span/br，不使用 p/div 以防破坏行内流)
                 separator_nodes = []
                 if self.separator:
                     lines = self.separator.split('\n')
@@ -366,7 +366,7 @@ class EpubTranslator(AiTranslator):
     def translate(self, document: Document) -> Self:
         all_files, soups, items_to_translate, original_texts = self._pre_translate(document)
         if not items_to_translate:
-            self.logger.info("\n文件中没有找到需要翻译的内容。")
+            self.logger.info("\nУ файлі не знайдено вмісту для перекладу.")
             document.content = self._after_translate(all_files, soups, [], [], [])
             return self
 
@@ -395,7 +395,7 @@ class EpubTranslator(AiTranslator):
             self._pre_translate, document
         )
         if not items_to_translate:
-            self.logger.info("\n文件中没有找到需要翻译的内容。")
+            self.logger.info("\nУ файлі не знайдено вмісту для перекладу.")
             document.content = await asyncio.to_thread(self._after_translate, all_files, soups, [], [], [])
             return self
 

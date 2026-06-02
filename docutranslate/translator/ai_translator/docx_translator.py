@@ -37,22 +37,22 @@ SIGNIFICANT_STYLES = frozenset([
 
 
 def is_image_run(run: Run) -> bool:
-    """检查一个 Run 是否包含图片。"""
+    """检查一个 Run 是否包含图片."""
     xml = getattr(run.element, 'xml', '')
     return '<w:drawing' in xml or '<w:pict' in xml
 
 
 def is_formatting_only_run(run: Run) -> bool:
     """
-    检查一个 Run 是否仅用于格式化，不包含任何应被渲染的文本。
-    这仅适用于其 .text 属性为 "" 的情况。
+    检查一个 Run 是否仅用于格式化，不包含任何应被渲染的文本.
+    这仅适用于其 .text 属性为 "" 的情况.
     """
     return run.text == ""
 
 
 def is_tab_run(run: Run) -> bool:
     """
-    检查一个 Run 是否主要代表一个制表符，应被视作格式边界。
+    检查一个 Run 是否主要代表一个制表符，应被视作格式边界.
     """
     if run.text.strip():
         return False
@@ -62,9 +62,9 @@ def is_tab_run(run: Run) -> bool:
 
 def is_instr_text_run(run: Run) -> bool:
     """
-    检查一个 Run 是否包含域指令文本 (w:instrText)。
-    目录(TOC)、页码、超链接等功能的指令代码存储在此标签中。
-    必须跳过这些 Run，否则写入 text 会破坏域结构。
+    检查一个 Run 是否包含域指令文本 (w:instrText).
+    目录(TOC)、页码、超链接等功能的指令代码存储在此标签中.
+    必须跳过这些 Run，否则写入 text 会破坏域结构.
     """
     return run.element.find(qn('w:instrText')) is not None
 
@@ -80,8 +80,8 @@ class DocxTranslatorConfig(AiTranslatorConfig):
 # ---------------- 主类 ----------------
 class DocxTranslator(AiTranslator):
     """
-    一个基于高级结构化解析的 .docx 文件翻译器。
-    它能高精度保留样式，并正确处理正文、表格、页眉/脚、脚注/尾注、超链接和目录(TOC)等复杂元素。
+    一个基于高级结构化解析的 .docx файл翻译器.
+    它能高精度保留样式，并正确处理正文、表格、页眉/脚、脚注/尾注、超链接和目录(TOC)等复杂元素.
     """
     IGNORED_TAGS = {
         qn('w:proofErr'), qn('w:lastRenderedPageBreak'), qn('w:bookmarkStart'),
@@ -129,7 +129,7 @@ class DocxTranslator(AiTranslator):
         self.office_password = config.office_password
 
     def _decrypt_if_needed(self, content: bytes) -> bytes:
-        """如果文件加密则解密，否则返回原内容"""
+        """如果файл加密则解密，否则返回原内容"""
         import msoffcrypto
         import msoffcrypto.exceptions
         from io import BytesIO
@@ -139,7 +139,7 @@ class DocxTranslator(AiTranslator):
             office_file = msoffcrypto.OfficeFile(file_stream)
             if office_file.is_encrypted():
                 if not self.office_password:
-                    raise ValueError("此DOCX文件已加密，但未提供密码。")
+                    raise ValueError("此DOCXфайл已加密，但未提供密码.")
                 decrypted = BytesIO()
                 office_file.load_key(password=self.office_password)
                 office_file.decrypt(decrypted)
@@ -151,7 +151,7 @@ class DocxTranslator(AiTranslator):
             file_stream.close()
 
     def _get_significant_styles(self, run: Run) -> frozenset:
-        """从一个 Run 中提取“显著”格式标签的集合。"""
+        """从一个 Run 中提取“显著”格式标签的集合."""
         if run is None:
             return frozenset()
         rPr = run.element.rPr
@@ -160,7 +160,7 @@ class DocxTranslator(AiTranslator):
         return frozenset(child.tag for child in rPr if child.tag in SIGNIFICANT_STYLES)
 
     def _have_same_significant_styles(self, run1: Run, run2: Run) -> bool:
-        """检查两个 Run 是否具有相同的“显著”格式集合。"""
+        """检查两个 Run 是否具有相同的“显著”格式集合."""
         styles1 = self._get_significant_styles(run1)
         styles2 = self._get_significant_styles(run2)
         return styles1 == styles2
@@ -279,7 +279,7 @@ class DocxTranslator(AiTranslator):
         elif isinstance(container, (_Cell, _Header, _Footer)):
             parent_element = container._element
         else:
-            self.logger.warning(f"跳过未知类型的容器: {type(container)}")
+            self.logger.warning(f"Пропуск контейнера невідомого типу: {type(container)}")
             return
 
         if parent_element is not None and parent_element.tag in [qn('w:footnotes'), qn('w:endnotes')]:
@@ -324,7 +324,7 @@ class DocxTranslator(AiTranslator):
                     break
 
             if first_real_run_index == -1:
-                self.logger.warning(f"无法应用翻译 '{final_text}'，因为找不到有效的run。")
+                self.logger.warning(f"Не вдалось застосувати переклад '{final_text}', не знайдено валідного run.")
                 return
 
             for i in range(first_real_run_index + 1, len(runs)):
@@ -334,13 +334,13 @@ class DocxTranslator(AiTranslator):
                     try:
                         parent_element.remove(run.element)
                     except ValueError:
-                        self.logger.debug(f"尝试删除一个不存在的run元素。这通常是安全的。")
+                        self.logger.debug(f"Спроба видалити неіснуючий run-елемент. Це зазвичай безпечно.")
                         pass
 
     def _prune_unwanted_elements_from_copy(self, p_element: OxmlElement):
         """
-        从复制的段落元素中移除图片、页码字段以及TOC域指令。
-        这可以防止在“append”模式下出现重复的图片、错误的页码或裸露的域代码。
+        从复制的段落元素中移除图片、页码字段以及TOC域指令.
+        这可以防止在“append”模式下出现重复的图片、помилка的页码或裸露的域代码.
         """
         runs_to_remove = []
         runs = p_element.findall(qn('w:r'))
@@ -355,7 +355,7 @@ class DocxTranslator(AiTranslator):
                 i += 1
                 continue
 
-            # 2. 检查域开始字符 (处理 PAGE, NUMPAGES, TOC 等)
+            # 2. 检查域开始символів (处理 PAGE, NUMPAGES, TOC 等)
             fldChar = run_element.find(qn('w:fldChar'))
             if fldChar is not None and fldChar.get(qn('w:fldCharType')) == 'begin':
                 is_target_field = False
@@ -375,7 +375,7 @@ class DocxTranslator(AiTranslator):
                             is_target_field = True
                             break
                         # [FIX] 检测 TOC 目录生成指令
-                        # 如果是 TOC 指令，我们必须移除它，否则译文段落会再次尝试生成目录，或显示乱码。
+                        # 如果是 TOC 指令，我们必须移除它，否则译文段落会再次尝试生成目录，或显示乱码.
                         if text.startswith('TOC'):
                             is_target_field = True
                             is_toc_field = True
@@ -391,15 +391,15 @@ class DocxTranslator(AiTranslator):
                             break
 
                 if is_target_field:
-                    # 找到要移除的字段了。
-                    # 对于 PAGE 字段，我们通常移除整个字段（因为译文段落的页码可能不准确，或者避免重复）。
-                    # 对于 TOC 字段，我们必须"解包"：移除 Begin, Instr, Separate，但保留结果文本(Hyperlink/Text)。
-                    # 但在这里，简单的策略是：移除 Begin 到 Separate (或 End) 之间的指令部分。
+                    # 找到要移除的字段了.
+                    # 对于 PAGE 字段，我们通常移除整个字段（因为译文段落的页码可能不准确，或者避免重复）.
+                    # 对于 TOC 字段，我们必须"解包"：移除 Begin, Instr, Separate，但保留结果文本(Hyperlink/Text).
+                    # 但在这里，简单的策略是：移除 Begin 到 Separate (或 End) 之间的指令部分.
 
                     if is_toc_field:
-                        # 特殊处理 TOC：我们希望保留后面的文字（如 "研究背景..."），只删掉域的定义部分。
+                        # 特殊处理 TOC：我们希望保留后面的文字（如 "研究背景..."），只删掉域的定义部分.
                         # TOC 结构通常是: Begin -> Instr(TOC) -> Separate -> Result(Text) -> End
-                        # 我们移除 Begin -> ... -> Separate。保留 Result -> End。
+                        # 我们移除 Begin -> ... -> Separate.保留 Result -> End.
                         runs_to_remove.append(run_element)  # 移除 Begin
 
                         found_separate = False
@@ -452,7 +452,7 @@ class DocxTranslator(AiTranslator):
                          originals: List[str]) -> bytes:
         if len(elements) != len(translated):
             self.logger.error(
-                f"翻译数量不匹配！原文: {len(originals)}, 译文: {len(translated)}. 将只处理公共部分。")
+                f"翻译数量不匹配！原文: {len(originals)}, 译文: {len(translated)}. 将只处理公共部分.")
             min_len = min(len(elements), len(translated), len(originals))
             elements, translated, originals = elements[:min_len], translated[:min_len], originals[:min_len]
 
@@ -610,7 +610,7 @@ class DocxTranslator(AiTranslator):
     def translate(self, document: Document) -> Self:
         doc, elements, originals = self._pre_translate(document)
         if not originals:
-            self.logger.info("\n文档中未找到可翻译的文本内容。")
+            self.logger.info("\nУ документі не знайдено перекладного текстового вмісту.")
             document.content = self._after_translate(doc, elements, [], [])
             return self
 
@@ -629,7 +629,7 @@ class DocxTranslator(AiTranslator):
     async def translate_async(self, document: Document) -> Self:
         doc, elements, originals = await asyncio.to_thread(self._pre_translate, document)
         if not originals:
-            self.logger.info("\n文档中未找到可翻译的文本内容。")
+            self.logger.info("\nУ документі не знайдено перекладного текстового вмісту.")
             document.content = await asyncio.to_thread(self._after_translate, doc, elements, [], [])
             return self
 

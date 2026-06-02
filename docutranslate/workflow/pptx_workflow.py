@@ -33,7 +33,7 @@ class PPTXWorkflow(Workflow[PPTXWorkflowConfig, Document, Document], HTMLExporta
     def _pre_translate(self, document_original: Document):
         suffix = document_original.suffix.lower() if document_original.suffix else ""
         if suffix != ".pptx":
-            raise ValueError(f"该工作流不支持{suffix}格式，请转为.pptx格式")
+            raise ValueError(f"Цей робочий процес не підтримує{suffix}формат, конвертуйте у .pptx")
         document = document_original.copy()
         translate_config = self.config.translator_config
         translator = PPTXTranslator(translate_config)
@@ -41,7 +41,7 @@ class PPTXWorkflow(Workflow[PPTXWorkflowConfig, Document, Document], HTMLExporta
 
     def translate(self) -> Self:
         # 准备阶段
-        self.progress_tracker.update(percent=10, message="正在准备翻译...")
+        self.progress_tracker.update(percent=10, message="Готую переклад...")
         document, translator = self._pre_translate(self.document_original)
         self._translator = translator  # 保存translator引用
 
@@ -50,16 +50,16 @@ class PPTXWorkflow(Workflow[PPTXWorkflowConfig, Document, Document], HTMLExporta
 
         # 保存术语表阶段
         if translator.glossary.glossary_dict:
-            self.progress_tracker.update(percent=95, message="正在保存术语表...")
+            self.progress_tracker.update(percent=95, message="Зберігаю глосарій...")
             self.attachment.add_document("glossary", Glossary.glossary_dict2csv(translator.glossary.glossary_dict))
 
-        self.progress_tracker.update(percent=100, message="翻译完成")
+        self.progress_tracker.update(percent=100, message="Переклад завершено")
         self.document_translated = document
         return self
 
     async def translate_async(self) -> Self:
         # 准备阶段
-        self.progress_tracker.update(percent=10, message="正在准备翻译...")
+        self.progress_tracker.update(percent=10, message="Готую переклад...")
         document, translator = self._pre_translate(self.document_original)
         self._translator = translator  # 保存translator引用
 
@@ -68,16 +68,16 @@ class PPTXWorkflow(Workflow[PPTXWorkflowConfig, Document, Document], HTMLExporta
 
         # 保存术语表阶段
         if translator.glossary.glossary_dict:
-            self.progress_tracker.update(percent=95, message="正在保存术语表...")
+            self.progress_tracker.update(percent=95, message="Зберігаю глосарій...")
             self.attachment.add_document("glossary", Glossary.glossary_dict2csv(translator.glossary.glossary_dict))
 
-        self.progress_tracker.update(percent=100, message="翻译完成")
+        self.progress_tracker.update(percent=100, message="Переклад завершено")
         self.document_translated = document
         return self
 
     def get_statistics(self) -> dict:
         """
-        获取翻译任务的统计信息。
+        获取翻译任务的统计信息.
 
         Returns:
             dict: 包含glossary、translation和total三个部分的统计信息

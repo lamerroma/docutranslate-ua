@@ -448,7 +448,7 @@ if MCP_AVAILABLE and FastMCP is not None and Context is not None:
                 rpm: Optional[int] = None,
                 tpm: Optional[int] = None,
                 provider: Optional[str] = None,
-                # Markdown 工作流参数
+                # Markdown робочий процес参数
                 convert_engine: Optional[str] = None,
                 md2docx_engine: Optional[str] = None,
                 mineru_token: str = "",
@@ -465,7 +465,7 @@ if MCP_AVAILABLE and FastMCP is not None and Context is not None:
                 mineru_deploy_end_page_id: Optional[int] = None,
                 mineru_deploy_lang_list: Optional[List[str]] = None,
                 mineru_deploy_server_url: str = "",
-                # 其他工作流参数
+                # 其他робочий процес参数
                 insert_mode: Optional[str] = None,
                 separator: Optional[str] = None,
                 segment_mode: Optional[str] = None,

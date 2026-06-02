@@ -18,7 +18,7 @@ NON_TRANSLATABLE_TAGS: Set[str] = {
 }
 
 # 2. 可作为独立翻译单元的块级标签（白名单）
-# 这些标签将被视为一个整体进行翻译，并且在append/prepend模式下会触发结构化操作。
+# 这些标签将被视为一个整体进行翻译，并且在append/prepend模式下会触发结构化操作.
 TRANSLATABLE_BLOCK_TAGS: Set[str] = {
     'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote', 'q', 'caption',
     'td', 'th', 'button', 'legend', 'figcaption', 'summary', 'details', 'div',
@@ -44,10 +44,10 @@ class HtmlTranslatorConfig(AiTranslatorConfig):
 
 class HtmlTranslator(AiTranslator):
     """
-    一个用于翻译 HTML 文件内容的翻译器。
-    【结构化修改版】: 借鉴 Docx/EpubTranslator 的实现，将块级元素作为整体翻译单元。
+    一个用于翻译 HTML файл内容的翻译器.
+    【结构化修改版】: 借鉴 Docx/EpubTranslator 的实现，将块级元素作为整体翻译单元.
     在 append/prepend 模式下，对常规块级元素创建新标签存放译文，对表格单元格则在内部追加内容，
-    以保证文档结构的清晰和样式的绝对一致性，同时保留了强大的黑白名单安全规则。
+    以保证文档结构的清晰和样式的绝对一致性，同时保留了强大的黑白名单安全规则.
     """
 
     def __init__(self, config: HtmlTranslatorConfig):
@@ -108,7 +108,7 @@ class HtmlTranslator(AiTranslator):
 
         tags_to_process = []
         for tag in all_potential_blocks:
-            # 采用“Bottom-Up”逻辑，只选择不包含其他可翻译块级标签的“叶子”标签。
+            # 采用“Bottom-Up”逻辑，只选择不包含其他可翻译块级标签的“叶子”标签.
             contains_other_block = tag.find(
                 lambda child_tag: child_tag in all_potential_blocks_set and child_tag is not tag
             )
@@ -133,7 +133,7 @@ class HtmlTranslator(AiTranslator):
     def _after_translate(self, soup: BeautifulSoup, translatable_items: list,
                          translated_texts: list[str], original_texts: list[str]) -> bytes:
         if len(translatable_items) != len(translated_texts):
-            self.logger.error("翻译前后的文本片段数量不匹配 (%d vs %d)，跳过写入操作以防损坏文件。",
+            self.logger.error("Кількість фрагментів до і після перекладу не збігається (%d vs %d)，пропускаю запис, щоб не пошкодити файл.",
                               len(translatable_items), len(translated_texts))
             return soup.encode('utf-8')
 
@@ -216,7 +216,7 @@ class HtmlTranslator(AiTranslator):
     def translate(self, document: Document) -> Self:
         soup, translatable_items, original_texts = self._pre_translate(document)
         if not translatable_items:
-            self.logger.info("\nHTML文件中没有找到符合安全规则的可翻译内容。")
+            self.logger.info("\nУ HTML-файлі не знайдено вмісту, що відповідає правилам безпеки для перекладу.")
             document.content = soup.encode('utf-8')
             return self
 
@@ -242,7 +242,7 @@ class HtmlTranslator(AiTranslator):
         soup, translatable_items, original_texts = await asyncio.to_thread(self._pre_translate, document)
 
         if not translatable_items:
-            self.logger.info("\nHTML文件中没有找到符合安全规则的可翻译内容。")
+            self.logger.info("\nУ HTML-файлі не знайдено вмісту, що відповідає правилам безпеки для перекладу.")
             document.content = await asyncio.to_thread(soup.encode, 'utf-8')
             return self
 

@@ -41,7 +41,7 @@ class ConverterDocling(X2MarkdownConverter):
         self.formula = config.formula_ocr
         artifact = Path("./docling_artifact")
         if artifact.is_dir():
-            self.logger.info("使用./docling_artifact的本地模型")
+            self.logger.info("Використовую локальну модель з ./docling_artifact")
             self.artifact = artifact
         else:
             self.artifact = config.artifact
@@ -49,11 +49,11 @@ class ConverterDocling(X2MarkdownConverter):
 
     def convert(self, document) -> MarkdownDocument:
         assert isinstance(document.name, str)
-        self.logger.info(f"正在将文档转换为markdown")
+        self.logger.info(f"Конвертую документ у markdown")
         time1 = time.time()
         document_stream = DocumentStream(name=document.name, stream=BytesIO(document.content))
         content = self.file2markdown_embed_images(document_stream)
-        self.logger.info(f"已转换为markdown，耗时{time.time() - time1}秒")
+        self.logger.info(f"Документ конвертовано у markdown, тривалість{time.time() - time1}сек")
         self.attachments.append(AttachMent("docling",MarkdownDocument.from_bytes(content=content.encode("utf-8"), suffix=".md", stem="docling")))
         md_document = MarkdownDocument.from_bytes(content=content.encode("utf-8"), suffix=".md", stem=document.stem)
         return md_document
@@ -92,11 +92,11 @@ class ConverterDocling(X2MarkdownConverter):
             conversion_result = converter.convert(file_path)
             result = conversion_result.document.export_to_markdown(image_mode=ImageRefMode.EMBEDDED)
         except LocalEntryNotFoundError:
-            self.logger.info(f"无法连接huggingface，正在尝试换源")
+            self.logger.info(f"Не вдалось підключитись до huggingface, пробую інше джерело")
             os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
             conversion_result = converter.convert(file_path)
             result = conversion_result.document.export_to_markdown(image_mode=ImageRefMode.EMBEDDED)
-            # translater_logger.info(f"docling转换耗时: {conversion_result.timings["pipeline_total"].times}")
+            # translater_logger.info(f"тривалість docling-конвертації: {conversion_result.timings["pipeline_total"].times}")
         return result
 
 
