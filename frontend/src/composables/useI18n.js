@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 
 export function useI18n() {
-    const currentLang = ref(localStorage.getItem('ui_language') || 'zh');
+    const currentLang = ref(localStorage.getItem('ui_language') || 'uk');
     const i18nData = ref({});
 
     const t = (k, params) => {
@@ -29,24 +29,24 @@ export function useI18n() {
 
     const loadI18n = async () => {
         try {
-            const lang = currentLang.value || 'zh';
+            const lang = currentLang.value || 'uk';
             const res = await fetch(`/static/i18n/${lang}.json`);
             i18nData.value = await res.json();
         } catch (e) {
             // Fallback defaults
             i18nData.value = {
                 pageTitle: "DocuTranslate",
-                tutorialBtn: "教程",
-                projectContributeBtn: "项目协作",
-                workflowTitle: "选择工作流",
-                autoWorkflowLabel: "自动选择工作流",
-                workflowOptionPptx: "PPTX 演示文稿",
-                pptxSettingsTitleText: "PPTX 设置",
-                mineruDeployServerUrlLabel: "Server URL",
-                mineruDeployLangListLabel: "语言列表 (Pipeline模式)",
+                tutorialBtn: "Посібник",
+                projectContributeBtn: "Співпраця з проектом",
+                workflowTitle: "Оберіть сценарій",
+                autoWorkflowLabel: "Авто-вибір сценарію",
+                workflowOptionPptx: "Презентація PPTX",
+                pptxSettingsTitleText: "Параметри перекладу PPTX",
+                mineruDeployServerUrlLabel: "URL сервера",
+                mineruDeployLangListLabel: "Список мов (режим Pipeline)",
                 mineruDeployServerUrlPlaceholder: "http://127.0.0.1:30000",
-                mineruDeployParseMethodLabel: "解析方法 (Parse Method)",
-                mineruDeployTableEnableLabel: "表格识别 (Table Recognition)"
+                mineruDeployParseMethodLabel: "Метод парсингу",
+                mineruDeployTableEnableLabel: "Розпізнавання таблиць"
             };
         }
     };

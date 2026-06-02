@@ -110,18 +110,28 @@
                         v-model="form.glossary_agent_to_lang"
                         @change="saveSetting('glossary_agent_to_lang', form.glossary_agent_to_lang)"
                     >
-                        <option value="Simplified Chinese">中文(简体中文)</option>
-                        <option value="English">英文(English)</option>
-                        <option value="Spanish">西班牙文(Español)</option>
-                        <option value="French">法文(Français)</option>
-                        <option value="German">德文(Deutsch)</option>
-                        <option value="Japanese">日文(日本語)</option>
-                        <option value="Korean">韩文(한국어)</option>
-                        <option value="Russian">俄文(Русский)</option>
-                        <option value="Ukrainian">乌克兰文(Українська)</option>
-                        <option value="Portuguese">葡萄牙文(Português)</option>
-                        <option value="Arabic">阿拉伯文(العَرَبِيَّة)</option>
-                        <option value="Vietnamese">越南文(tiếng Việt)</option>
+                        <option value="Ukrainian">Українська</option>
+                        <option value="English">English</option>
+                        <option value="German">Deutsch</option>
+                        <option value="French">Français</option>
+                        <option value="Spanish">Español</option>
+                        <option value="Italian">Italiano</option>
+                        <option value="Portuguese">Português</option>
+                        <option value="Polish">Polski</option>
+                        <option value="Czech">Čeština</option>
+                        <option value="Slovak">Slovenčina</option>
+                        <option value="Hungarian">Magyar</option>
+                        <option value="Romanian">Română</option>
+                        <option value="Bulgarian">Български</option>
+                        <option value="Russian">Русский</option>
+                        <option value="Belarusian">Беларуская</option>
+                        <option value="Turkish">Türkçe</option>
+                        <option value="Arabic">العَرَبِيَّة</option>
+                        <option value="Japanese">日本語</option>
+                        <option value="Korean">한국어</option>
+                        <option value="Simplified Chinese">中文 (简体)</option>
+                        <option value="Traditional Chinese">中文 (繁體)</option>
+                        <option value="Vietnamese">Tiếng Việt</option>
                         <option value="custom">{{ t('targetLanguageCustom') }}</option>
                     </select>
                     <div class="mt-2" v-if="form.glossary_agent_to_lang === 'custom'">

@@ -1,5 +1,5 @@
 <template>
-    <Modal v-model="visible" title="设置" size="sm">
+    <Modal v-model="visible" :title="t('queueConcurrentLabel')" size="sm">
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {{ t('queueConcurrentLabel') }}
