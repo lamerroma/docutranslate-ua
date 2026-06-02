@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{title}}</title>
+    {{pico}}
+    {{katexCss}}
+    {{copyTexCss}}
+    {{katexJs}}
+    {{copyTexJs}}
+    {{autoRender}}
+    <style>
+        @page {
+            margin: 1.5cm 1cm 1.5cm 2cm;
+            @top-left { content: "{{title}}"; font-size: 10pt; color: #666; }
+            @top-right { content: counter(page); font-size: 10pt; color: #666; }
+            @bottom-left { content: "Powered by DocuTranslate"; font-size: 8pt; color: #999; }
+            @bottom-right { content: counter(page) " / " counter(pages); font-size: 10pt; color: #666; }
+        }
+
+        @media print {
+            html, main { padding: 0 !important; }
+            #toc-panel, #toc-btn { display: none !important; }
+        }
+
+        html { font-size: 15px; }
+        main { padding: 2vh 10vw; }
+
+        /* 目录按钮 */
+        #toc-btn {
+            position: fixed;
+            left: 0;
+            top: 10px;
+            width: 20px;
+            height: 24px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-left: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        #toc-btn:hover { background: #f5f5f5; }
+
+        /* 目录面板 */
+        #toc-panel {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100vh;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            z-index: 9999;
+            padding: 40px 12px 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform 0.2s ease;
+            will-change: transform; /* 性能优化提示 */
+        }
+        #toc-panel.show { transform: translateX(0); }
+
+        .toc-item { margin: 2px 0; }
+        .toc-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            color: #555;
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 3px;
+            cursor: pointer;
+            user-select: none; /* 防止频繁点击时选中文本 */
+        }
+        .toc-link:hover { background: #f5f5f5; }
+        .toc-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .toc-expander {
+            width: 18px;
+            height: 18px;
+            line-height: 16px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .toc-expander:hover { color: #333; background: rgba(0,0,0,0.05); border-radius: 2px; }
+
+        .toc-children { display: none; padding-left: 12px; }
+        .toc-children.expanded { display: block; }
+
+        .toc-item[data-level="1"] > .toc-link { font-weight: 500; color: #333; }
+        .toc-item[data-level="2"] > .toc-link { padding-left: 20px; }
+        .toc-item[data-level="3"] > .toc-link { padding-left: 30px; }
+        .toc-item[data-level="4"] > .toc-link { padding-left: 40px; }
+        .toc-item[data-level="5"] > .toc-link { padding-left: 50px; }
+    </style>
+</head>
+<body>
+<div id="toc-panel"><ul class="toc-list" id="toc-list"></ul></div>
+<button id="toc-btn" onclick="toggleToc()">☰</button>
+<main>{{markdown}}</main>
+</body>
+{{renderMathInElement}}
+{{mermaid}}
+<script>
+(function() {
+    const panel = document.getElementById('toc-panel');
+    const list = document.getElementById('toc-list');
+
+    // UI交互逻辑
+    window.toggleToc = function() { panel.classList.toggle('show'); };
+
+    // 事件委托：处理目录点击与折叠
+    list.addEventListener('click', function(e) {
+        // 1. 处理折叠/展开 (+/- 按钮)
+        if (e.target.classList.contains('toc-expander')) {
+            e.stopPropagation();
+            const ul = e.target.closest('li').querySelector('.toc-children');
+            if (ul) {
+                ul.classList.toggle('expanded');
+                e.target.textContent = ul.classList.contains('expanded') ? '-' : '+';
+            }
+            return;
+        }
+
+        // 2. 处理点击跳转
+        const link = e.target.closest('.toc-link');
+        if (link && link.dataset.target) {
+            const targetEl = document.getElementById(link.dataset.target);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth' });
+                // 在移动端点击后自动关闭面板
+                if (window.innerWidth < 768) panel.classList.remove('show');
+            }
+        }
+    });
+
+    // 核心生成逻辑
+    function buildToc() {
+        const headings = Array.from(document.querySelectorAll('main h1, main h2, main h3, main h4, main h5, main h6'));
+        if (headings.length === 0) return;
+
+        // 确保所有标题都有ID
+        headings.forEach((h, i) => { if (!h.id) h.id = 'h-' + i; });
+
+        // 构建树状结构
+        const root = { level: 0, children: [] };
+        const stack = [root];
+
+        headings.forEach(h => {
+            const level = parseInt(h.tagName[1]);
+            const item = { id: h.id, text: h.textContent.trim(), level, children: [] };
+
+            while (stack.length > 1 && stack[stack.length - 1].level >= level) {
+                stack.pop();
+            }
+            stack[stack.length - 1].children.push(item);
+            stack.push(item);
+        });
+
+        // 使用 DocumentFragment 进行离线 DOM 构建 (性能关键点)
+        const fragment = document.createDocumentFragment();
+        renderRecursive(root.children, fragment);
+        list.appendChild(fragment);
+    }
+
+    // 递归渲染函数
+    function renderRecursive(items, container) {
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'toc-item';
+            li.dataset.level = item.level;
+
+            // 链接部分
+            const div = document.createElement('div');
+            div.className = 'toc-link';
+            div.dataset.target = item.id; // 存储目标ID供事件委托使用
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'toc-text';
+            textSpan.textContent = item.text;
+            div.appendChild(textSpan);
+
+            // 折叠按钮
+            let expander = null;
+            if (item.children.length) {
+                expander = document.createElement('span');
+                expander.className = 'toc-expander';
+                // 默认展开一级菜单，其他折叠
+                const isRoot = item.level === 1;
+                expander.textContent = isRoot ? '-' : '+';
+                div.appendChild(expander);
+            }
+            li.appendChild(div);
+
+            // 子菜单
+            if (item.children.length) {
+                const ul = document.createElement('ul');
+                ul.className = 'toc-children';
+                if (item.level === 1) ul.classList.add('expanded');
+
+                renderRecursive(item.children, ul);
+                li.appendChild(ul);
+            }
+
+            container.appendChild(li);
+        });
+    }
+
+    // 调度执行：优先显示内容，空闲时生成目录
+    const idleCallback = window.requestIdleCallback || function(cb) { setTimeout(cb, 10); };
+    idleCallback(buildToc);
+
+})();
+
+// 辅助脚本
+setTimeout(() => {
+    // 修复 Katex 错误显示
+    const errors = document.getElementsByClassName('katex-error');
+    for (let i = 0; i < errors.length; i++) {
+        errors[i].innerHTML = errors[i].title;
+    }
+}, 200);
+
+// 确保 Mermaid 存在再初始化
+if (typeof mermaid !== 'undefined') {
+    mermaid.initialize({ securityLevel: 'loose', startOnLoad: true });
+}
+</script>
+</html>

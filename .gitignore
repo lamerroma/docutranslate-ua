@@ -1,0 +1,28 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+tests/
+tests/resource/
+tests/test_data/
+htmlcov/
+.coverage
+.pytest_cache/
+*.pyc
+__pycache__/
+examples/
+check/
+docutranslate/output/
+# Virtual environments
+.venv
+#idea
+.idea/
+#claude
+.claude/
+# Vite cache
+.vite
+# Environment variables
+.env

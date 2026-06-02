@@ -1,0 +1,80 @@
+[project]
+name = "docutranslate"
+description = "文件翻译工具"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "jsonpath-ng>=1.7.0",
+    "openpyxl>=3.1.5",
+    "xlsx2html>=0.6.2",
+    "json-repair>=0.48.0",
+    "mammoth>=1.10.0",
+    "srt>=3.5.3",
+    "lxml>=5.4.0",
+    "python-docx>=1.2.0",
+    "beautifulsoup4>=4.13.4",
+    "markdown>=3.8.2",
+    "pymdown-extensions>=10.16.1",
+    "pysubs2>=1.8.0",
+    "httpx>=0.28.1",
+    "python-pptx>=1.0.2",
+    "pypdf>=6.7.1",
+    "regex>=2025.11.3",
+    "charset-normalizer>=3.4.4",
+    "html2text>=2024.2.26",
+    "python-dotenv>=1.2.1",
+    "msoffcrypto-tool>=4.12.0",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+docling = ["opencv-python>=4.12.0.88", "docling>=2.40.0", "hf-xet>=1.1.10"]
+mcp = ["mcp>=1.6.0", "python-dotenv>=1.0.0"]
+
+[dependency-groups]
+dev = [
+    "opencv-python>=4.12.0.88",
+    "docling>=2.40.0",
+    "hf-xet>=1.1.10",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-mock>=3.15.1",
+    "pytest-env>=1.5.0",
+    "coverage>=7.13.4",
+    "pytest-cov>=7.0.0",
+]
+[project.scripts]
+docutranslate = "docutranslate.cli:main"
+
+[build-system]
+requires = ["setuptools>=80.9.0"]       # 或者你需要的 setuptools 版本
+build-backend = "setuptools.build_meta"
+[tool.setuptools]
+#packages = ["docutranslate"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["docutranslate*"]
+[tool.setuptools.package-data]
+docutranslate = ["static/**", "template/**"]
+
+[tool.setuptools.dynamic]
+version = { attr = "docutranslate.__version__" }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=docutranslate --cov-report=term --cov-report=html:htmlcov"
+env = [
+    "DOCUTRANSLATE_BASE_URL=https://api.openai.com/v1",
+    "DOCUTRANSLATE_API_KEY=test-api-key",
+    "DOCUTRANSLATE_MODEL_ID=gpt-4o",
+    "DOCUTRANSLATE_TO_LANG=中文",
+    "DOCUTRANSLATE_CONCURRENT=10",
+    "DOCUTRANSLATE_CONVERT_ENGINE=",
+    "DOCUTRANSLATE_MINERU_TOKEN=test-mineru-token",
+    "DOCUTRANSLATE_PROXY_ENABLED=false"
+]
