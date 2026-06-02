@@ -118,6 +118,7 @@
                         <option value="Japanese">日文(日本語)</option>
                         <option value="Korean">韩文(한국어)</option>
                         <option value="Russian">俄文(Русский)</option>
+                        <option value="Ukrainian">乌克兰文(Українська)</option>
                         <option value="Portuguese">葡萄牙文(Português)</option>
                         <option value="Arabic">阿拉伯文(العَرَبِيَّة)</option>
                         <option value="Vietnamese">越南文(tiếng Việt)</option>
