@@ -374,8 +374,8 @@ class DocxTranslator(AiTranslator):
                         if 'PAGE' in text or 'NUMPAGES' in text:
                             is_target_field = True
                             break
-                        # [FIX] 检测 TOC 目录生成指令
-                        # 如果是 TOC 指令，我们必须移除它，否则译文段落会再次尝试生成目录，或显示乱码.
+                        # [FIX] 检测 TOC 目录Генерую指令
+                        # 如果是 TOC 指令，我们必须移除它，否则译文段落会再次尝试Генерую目录，或显示乱码.
                         if text.startswith('TOC'):
                             is_target_field = True
                             is_toc_field = True

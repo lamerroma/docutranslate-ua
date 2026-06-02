@@ -197,7 +197,7 @@ class EpubTranslator(AiTranslator):
                                 p_tag.append(node)
                             new_body_contents.append(p_tag)
 
-                        # 只有当确实生成了段落时才替换 body 内容
+                        # 只有当确实Генерую了段落时才替换 body 内容
                         if new_body_contents:
                             # 清空 body 并重新填充
                             body.clear()

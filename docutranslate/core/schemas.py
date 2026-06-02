@@ -53,13 +53,13 @@ class GlossaryAgentConfigPayload(BaseModel):
     base_url: str = Field(
         ...,
         validation_alias=AliasChoices("base_url", "baseurl"),
-        description="用于术语表生成的Agent的LLM API基础URL.",
+        description="用于术语表Генерую的Agent的LLM API基础URL.",
         examples=["https://api.openai.com/v1"],
     )
     api_key: str = Field(
         default="xx",
         validation_alias=AliasChoices("api_key", "key"),
-        description="用于术语表生成的Agent的LLM API密钥（默认为xx）.",
+        description="用于术语表Генерую的Agent的LLM API密钥（默认为xx）.",
         examples=["sk-agent-api-key"],
     )
 
@@ -69,16 +69,16 @@ class GlossaryAgentConfigPayload(BaseModel):
         return v if v and v.strip() else "xx"
 
     model_id: str = Field(
-        ..., description="用于术语表生成的Agent的模型ID.", examples=["gpt-4-turbo"]
+        ..., description="用于术语表Генерую的Agent的模型ID.", examples=["gpt-4-turbo"]
     )
     to_lang: str = Field(
-        ..., description="术语表生成的目标语言.", examples=["简体中文", "English"]
+        ..., description="术语表Генерую的目标语言.", examples=["简体中文", "English"]
     )
     temperature: float = Field(
-        default=0.7, description="用于术语表生成的Agent的温度参数."
+        default=0.7, description="用于术语表Генерую的Agent的温度参数."
     )
     top_p: float = Field(
-        default=0.9, description="用于术语表生成的Agent的核采样参数."
+        default=0.9, description="用于术语表Генерую的Agent的核采样参数."
     )
     concurrent: int = Field(default=30, description="Agent的最大并发请求数.")
     timeout: int = Field(
@@ -95,7 +95,7 @@ class GlossaryAgentConfigPayload(BaseModel):
     )
     # 修改: 默认值改为 "" 以避免 Swagger 显示 "string"
     custom_prompt: Optional[str] = Field(
-        default="", description="生成术语表的用户自定义提示词"
+        default="", description="Генерую术语表的用户自定义提示词"
     )
     force_json: bool = Field(
         default=False, description="强制Agent输出JSON格式的术语表."
@@ -186,11 +186,11 @@ class BaseWorkflowParams(BaseModel):
         None, description="术语表字典，key为原文，value为译文.", examples=[None]
     )
     glossary_generate_enable: bool = Field(
-        default=GLOSSARY_GENERATE_ENABLE, description="是否开启术语表自动生成."
+        default=GLOSSARY_GENERATE_ENABLE, description="是否开启术语表自动Генерую."
     )
     glossary_agent_config: Optional[GlossaryAgentConfigPayload] = Field(
         None,
-        description="用于术语表生成的Agent的конфігурацію.如果 `glossary_generate_enable` 为 `True`，此项必填.",
+        description="用于术语表Генерую的Agent的конфігурацію.如果 `glossary_generate_enable` 为 `True`，此项必填.",
         examples=[None],
     )
     force_json: bool = Field(
@@ -310,7 +310,7 @@ class MarkdownWorkflowParams(BaseWorkflowParams):
     )
     md2docx_engine: Literal["python", "pandoc", "auto"] | None = Field(
         MD2DOCX_ENGINE,
-        description="选择将markdown导出为docx的引擎.'python'使用纯Python实现，'pandoc'使用pandoc命令，'auto'自动选择（优先使用pandoc），None表示不生成docx.",
+        description="选择将markdown导出为docx的引擎.'python'使用纯Python实现，'pandoc'使用pandoc命令，'auto'自动选择（优先使用pandoc），None表示不Генеруюdocx.",
         examples=["python", "pandoc", "auto"],
     )
 

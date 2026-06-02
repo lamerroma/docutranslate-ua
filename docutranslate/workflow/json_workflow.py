@@ -74,7 +74,7 @@ class JsonWorkflow(Workflow[JsonWorkflowConfig, Document, Document], HTMLExporta
 
     def get_statistics(self) -> dict:
         """
-        获取翻译任务的统计信息.
+        获取翻译Завдання的统计信息.
 
         Returns:
             dict: 包含glossary、translation和total三个部分的统计信息

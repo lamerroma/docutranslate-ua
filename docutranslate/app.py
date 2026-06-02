@@ -77,7 +77,7 @@ translation_service: TranslationService = get_translation_service()
 tags_metadata = [
     {
         "name": "Service API",
-        "description": "核心的服务API，用于提交、管理和下载翻译任务.",
+        "description": "核心的服务API，用于提交、管理和下载翻译Завдання.",
     },
     {
         "name": "Application",
@@ -103,7 +103,7 @@ async def lifespan(app: FastAPI):
 
     global_logger.propagate = False
     global_logger.setLevel(logging.INFO)
-    print("应用启动完成，多任务状态已初始化.")
+    print("应用启动完成，多Завдання状态已初始化.")
     if hasattr(app.state, "port_to_use"):
         if getattr(app.state, "with_mcp", False) and MCP_AVAILABLE:
             print(f"MCP SSE endpoint available at: http://127.0.0.1:{app.state.port_to_use}/mcp/sse")
@@ -132,17 +132,17 @@ app = FastAPI(
     description=f"""
 DocuTranslate 后端服务 API，提供文档翻译、状态查询、结果下载等功能.
 
-**注意**: 所有任务状态都保存在服务进程的内存中，服务重启将导致所有任务信息丢失.
+**注意**: 所有Завдання状态都保存在服务进程的内存中，服务重启将导致所有Завдання信息丢失.
 
 ### 主要робочий процес程:
-1.  **`POST /service/translate`** 或 **`POST /service/translate/file`**: 提交файл和包含`workflow_type`的翻译参数，启动一个后台任务.服务会自动生成并返回一个唯一的 `task_id`.
-2.  **`GET /service/status/{{task_id}}`**: 使用获取到的 `task_id` 轮询此端点，获取任务的实时状态.
+1.  **`POST /service/translate`** 或 **`POST /service/translate/file`**: 提交файл和包含`workflow_type`的翻译参数，启动一个后台Завдання.服务会自动Генерую并返回一个唯一的 `task_id`.
+2.  **`GET /service/status/{{task_id}}`**: 使用获取到的 `task_id` 轮询此端点，获取Завдання的实时状态.
 3.  **`GET /service/logs/{{task_id}}`**: (可选) 获取实时的翻译日志.
-4.  **`GET /service/download/{{task_id}}/{{file_type}}`**: 任务完成后 (当 `download_ready` 为 `true` 时)，通过此端点下载结果файл.
-5.  **`GET /service/attachment/{{task_id}}/{{identifier}}`**: (可选) 如果任务生成了附件（如术语表），通过此端点下载.
-6.  **`GET /service/content/{{task_id}}/{{file_type}}`**: 任务完成后(当 `download_ready` 为 `true` 时)，以JSON格式获取файл内容.
-7.  **`POST /service/cancel/{{task_id}}`**: (可选) 取消一个正在进行的任务.
-8.  **`POST /service/release/{{task_id}}`**: (可选) 当任务不再需要时，释放其在服务器上占用的所有资源，包括临时файл.
+4.  **`GET /service/download/{{task_id}}/{{file_type}}`**: Завдання完成后 (当 `download_ready` 为 `true` 时)，通过此端点下载结果файл.
+5.  **`GET /service/attachment/{{task_id}}/{{identifier}}`**: (可选) 如果ЗавданняГенерую了附件（如术语表），通过此端点下载.
+6.  **`GET /service/content/{{task_id}}/{{file_type}}`**: Завдання完成后(当 `download_ready` 为 `true` 时)，以JSON格式获取файл内容.
+7.  **`POST /service/cancel/{{task_id}}`**: (可选) 取消一个正在进行的Завдання.
+8.  **`POST /service/release/{{task_id}}`**: (可选) 当Завдання不再需要时，释放其在服务器上占用的所有资源，包括临时файл.
 
 **版本**: {__version__}
 """,
@@ -237,7 +237,7 @@ class TranslateServiceRequest(BaseModel):
         ..., description="Base64编码的файл内容.", examples=["JVBERi0xLjcKJeLjz9MKMSAwIG9iago8PC/..."]
     )
     payload: TranslatePayload = Field(
-        ..., description="包含робочий процес类型和相应参数的载荷."
+        ..., description="包含Тип робочого процесу和相应参数的载荷."
     )
 
     model_config = ConfigDict(
@@ -281,38 +281,38 @@ class TranslateServiceRequest(BaseModel):
 
 @service_router.post(
     "/translate",
-    summary="提交翻译任务 (统一入口)",
+    summary="提交翻译Завдання (统一入口)",
     description="""
 接收一个包含файл内容（Base64编码）和робочий процес参数的JSON请求，启动一个Фонове завдання перекладу.
 
-- **робочий процес选择**: `payload.workflow_type` 决定任务类型（如 `markdown_based`, `txt`, `json`, `xlsx`, `docx`, `srt`, `epub`, `html`, `ass`, `pptx`, `auto`）.
+- **робочий процес选择**: `payload.workflow_type` 决定Завдання类型（如 `markdown_based`, `txt`, `json`, `xlsx`, `docx`, `srt`, `epub`, `html`, `ass`, `pptx`, `auto`）.
 - **Auto 模式**: 当设置为 `auto` 时，后端将根据 `file_name` 的扩展名自动选择最合适的робочий процес.
 - **动态参数**: 根据所选робочий процес，API需要不同的参数集.请参考下面的Schema或示例.
-- **异步处理**: 此端点会立即返回任务ID，客户端需轮询状态接口获取进度.
+- **异步处理**: 此端点会立即返回ЗавданняID，客户端需轮询状态接口获取进度.
 """,
     responses={
         200: {
-            "description": "翻译任务已成功启动.",
+            "description": "翻译Завдання已成功启动.",
             "content": {
                 "application/json": {
                     "example": {
                         "task_started": True,
                         "task_id": "a1b2c3d4",
-                        "message": "翻译任务已成功启动，请稍候...",
+                        "message": "Завдання перекладу успішно запущено, зачекайте...",
                     }
                 }
             },
         },
         400: {"description": "请求体无效，例如Base64解码失败."},
         429: {
-            "description": "服务器已有一个同ID的任务在处理中（理论上不应发生，因为ID是新生成的）."
+            "description": "服务器已有一个同ID的Завдання在处理中（理论上不应发生，因为ID是新Генерую的）."
         },
-        500: {"description": "启动后台任务时发生未知помилка."},
+        500: {"description": "启动后台Завдання时发生未知помилка."},
     },
 )
 async def service_translate(
         request: TranslateServiceRequest = Body(
-            ..., description="翻译任务的详细参数和файл内容."
+            ..., description="翻译Завдання的详细参数和файл内容."
         )
 ):
     task_id = uuid.uuid4().hex[:8]
@@ -346,30 +346,30 @@ async def service_translate(
 
 @service_router.post(
     "/translate/file",
-    summary="提交翻译任务 (файл上传)",
+    summary="提交翻译Завдання (файл上传)",
     description="""
-通过 `multipart/form-data` 方式上传файл并启动翻译任务.
+通过 `multipart/form-data` 方式上传файл并启动翻译Завдання.
 
 此接口适用于直接上传二进制файл（如 PDF, Docx 等），无需先进行 Base64 编码.
 """,
     responses={
         200: {
-            "description": "翻译任务已成功启动.",
+            "description": "翻译Завдання已成功启动.",
             "content": {
                 "application/json": {
                     "example": {
                         "task_started": True,
                         "task_id": "a1b2c3d4",
-                        "message": "翻译任务已成功启动，请稍候...",
+                        "message": "Завдання перекладу успішно запущено, зачекайте...",
                     }
                 }
             },
         },
         422: {"description": "请求参数验证失败，例如 JSON 格式помилка."},
         429: {
-            "description": "服务器已有一个同ID的任务在处理中（理论上不应发生，因为ID是新生成的）."
+            "description": "服务器已有一个同ID的Завдання在处理中（理论上不应发生，因为ID是新Генерую的）."
         },
-        500: {"description": "启动后台任务时发生未知помилка."},
+        500: {"description": "启动后台Завдання时发生未知помилка."},
     },
 )
 async def service_translate_file(
@@ -409,31 +409,31 @@ async def service_translate_file(
 
 @service_router.post(
     "/cancel/{task_id}",
-    summary="取消翻译任务",
-    description="根据任务ID取消一个正在进行中的翻译任务.如果任务已经完成、失败或已经被取消，则会返回помилка.",
+    summary="取消翻译Завдання",
+    description="根据ЗавданняID取消一个正在进行中的翻译Завдання.如果Завдання已经完成、失败或已经被取消，则会返回помилка.",
     responses={
-        200: {"description": "成功取消任务."},
-        404: {"description": "任务ID不存在."},
-        400: {"description": "任务已结束，无法取消."},
+        200: {"description": "成功取消Завдання."},
+        404: {"description": "ЗавданняID不存在."},
+        400: {"description": "Завдання已结束，无法取消."},
     },
 )
 async def service_cancel_translate(
-        task_id: str = FastApiPath(..., description="要取消的任务ID", examples=["a1b2c3d4"])
+        task_id: str = FastApiPath(..., description="要取消的ЗавданняID", examples=["a1b2c3d4"])
 ):
     return translation_service.cancel_task(task_id)
 
 
 @service_router.post(
     "/release/{task_id}",
-    summary="释放任务资源",
-    description="根据任务ID释放其在服务器上占用的所有资源，包括状态、日志和缓存的翻译结果файл.如果任务正在进行，会先尝试取消该任务.此操作不可逆.",
+    summary="释放Завдання资源",
+    description="根据ЗавданняID释放其在服务器上占用的所有资源，包括状态、日志和缓存的翻译结果файл.如果Завдання正在进行，会先尝试取消该Завдання.此操作不可逆.",
     responses={
-        200: {"description": "成功释放任务资源."},
-        404: {"description": "任务ID不存在."},
+        200: {"description": "成功释放Завдання资源."},
+        404: {"description": "ЗавданняID不存在."},
     },
 )
 async def service_release_task(
-        task_id: str = FastApiPath(..., description="要释放资源的任务ID", examples=["a1b2c3d4"])
+        task_id: str = FastApiPath(..., description="要释放资源的ЗавданняID", examples=["a1b2c3d4"])
 ):
     result = await translation_service.release_task(task_id)
     if not result["released"]:
@@ -446,11 +446,11 @@ async def service_release_task(
 
 @service_router.get(
     "/status/{task_id}",
-    summary="获取任务状态",
-    description="根据任务ID获取任务的当前状态.当 `download_ready` 为 `true` 时，`downloads` 和 `attachment` 对象中会包含可用的下载链接.",
+    summary="获取Завдання状态",
+    description="根据ЗавданняID获取Завдання的当前状态.当 `download_ready` 为 `true` 时，`downloads` 和 `attachment` 对象中会包含可用的下载链接.",
     responses={
         200: {
-            "description": "成功获取任务状态.",
+            "description": "成功获取Завдання状态.",
             "content": {
                 "application/json": {
                     "examples": {
@@ -459,7 +459,7 @@ async def service_release_task(
                             "value": {
                                 "task_id": "a1b2c3d4",
                                 "is_processing": True,
-                                "status_message": "正在处理 'annual_report.pdf'...",
+                                "status_message": "Обробляю 'annual_report.pdf'...",
                                 "error_flag": False,
                                 "download_ready": False,
                                 "progress_percent": 45,
@@ -550,17 +550,17 @@ async def service_release_task(
                 }
             },
         },
-        404: {"description": "指定的任务ID不存在."},
+        404: {"description": "指定的ЗавданняID不存在."},
     },
 )
 async def service_get_status(
         task_id: str = FastApiPath(
-            ..., description="要查询状态的任务的ID", examples=["b2865b93"]
+            ..., description="要查询状态的Завдання的ID", examples=["b2865b93"]
         )
 ):
     task_state = translation_service.get_task_state(task_id)
     if not task_state:
-        raise HTTPException(status_code=404, detail=f"找不到任务ID '{task_id}'.")
+        raise HTTPException(status_code=404, detail=f"Не знайдено task ID '{task_id}'.")
 
     downloads = {}
     if task_state.get("download_ready") and task_state.get("downloadable_files"):
@@ -609,7 +609,7 @@ async def service_get_status(
 def _get_default_statistics() -> dict:
     """
     返回默认统计结构（向后兼容）.
-    当任务尚未完成或统计信息不可用时使用.
+    当Завдання尚未完成或统计信息不可用时使用.
     """
     return {
         "glossary": None,
@@ -629,15 +629,15 @@ def _get_default_statistics() -> dict:
 
 @service_router.get(
     "/logs/{task_id}",
-    summary="获取任务增量日志",
-    description="以流式方式获取任务的增量日志.客户端每次调用此接口，都会返回自上次调用以来产生的新日志行.",
+    summary="获取Завдання增量日志",
+    description="以流式方式获取Завдання的增量日志.客户端每次调用此接口，都会返回自上次调用以来产生的新日志行.",
     responses={
         200: {"description": "成功返回增量日志."},
-        404: {"description": "任务ID不存在."},
+        404: {"description": "ЗавданняID不存在."},
     },
 )
 async def service_get_logs(
-        task_id: str = FastApiPath(..., description="要获取日志的任务ID", examples=["a1b2c3d4"])
+        task_id: str = FastApiPath(..., description="要获取日志的ЗавданняID", examples=["a1b2c3d4"])
 ):
     new_logs = await translation_service.get_new_logs(task_id)
     return JSONResponse(content={"logs": new_logs})
@@ -667,14 +667,14 @@ FileType = Literal[
             "description": "成功返回файл流.файл名通过 Content-Disposition 头指定.",
         },
         404: {
-            "description": "任务ID不存在，或该任务不支持所请求的файл类型，或临时файл已丢失."
+            "description": "ЗавданняID不存在，或该Завдання不支持所请求的файл类型，或临时файл已丢失."
         },
         500: {"description": "在服务器上读取файл时发生内部помилка."},
     },
 )
 async def service_download_file(
         task_id: str = FastApiPath(
-            ..., description="已完成任务的ID", examples=["b2865b93"]
+            ..., description="已完成Завдання的ID", examples=["b2865b93"]
         ),
         file_type: FileType = FastApiPath(
             ...,
@@ -686,7 +686,7 @@ async def service_download_file(
     if not file_info or not os.path.exists(file_info.get("path")):
         raise HTTPException(
             status_code=404,
-            detail=f"任务 '{task_id}' 不支持下载 '{file_type}' 类型的файл，或файл已丢失.",
+            detail=f"Завдання '{task_id}' 不支持下载 '{file_type}' 类型的файл，或файл已丢失.",
         )
 
     file_path = file_info["path"]
@@ -699,19 +699,19 @@ async def service_download_file(
 @service_router.get(
     "/attachment/{task_id}/{identifier}",
     summary="下载附件файл",
-    description="根据任务ID和附件标识符下载在翻译过程中生成的附加файл，例如自动生成的术语表.",
+    description="根据ЗавданняID和附件标识符下载在翻译过程中Генерую的附加файл，例如自动Генерую的术语表.",
     responses={
         200: {
             "description": "成功返回файл流.файл名通过 Content-Disposition 头指定.",
         },
         404: {
-            "description": "任务ID不存在，或该任务没有指定的附件，或临时файл已丢失."
+            "description": "ЗавданняID不存在，或该Завдання没有指定的附件，或临时файл已丢失."
         },
     },
 )
 async def service_download_attachment(
         task_id: str = FastApiPath(
-            ..., description="已完成任务的ID", examples=["g1h2i3j4"]
+            ..., description="已完成Завдання的ID", examples=["g1h2i3j4"]
         ),
         identifier: str = FastApiPath(
             ..., description="要下载的附件的标识符.", examples=["glossary"]
@@ -721,7 +721,7 @@ async def service_download_attachment(
     if not attachment_info or not os.path.exists(attachment_info.get("path")):
         raise HTTPException(
             status_code=404,
-            detail=f"任务 '{task_id}' 不存在标识符为 '{identifier}' 的附件，或файл已丢失.",
+            detail=f"Завдання '{task_id}' 不存在标识符为 '{identifier}' 的附件，或файл已丢失.",
         )
 
     file_path = attachment_info["path"]
@@ -761,14 +761,14 @@ async def download_glossary_template():
             "description": "成功返回файл内容.",
         },
         404: {
-            "description": "任务ID不存在，或该任务不支持所请求的файл类型，或临时файл已丢失."
+            "description": "ЗавданняID不存在，或该Завдання不支持所请求的файл类型，或临时файл已丢失."
         },
         500: {"description": "在服务器上读取файл时发生内部помилка."},
     },
 )
 async def service_content(
         task_id: str = FastApiPath(
-            ..., description="已完成任务的ID", examples=["b2865b93"]
+            ..., description="已完成Завдання的ID", examples=["b2865b93"]
         ),
         file_type: FileType = FastApiPath(
             ...,
@@ -780,7 +780,7 @@ async def service_content(
     if not file_info or not os.path.exists(file_info.get("path")):
         raise HTTPException(
             status_code=404,
-            detail=f"任务 '{task_id}' 不支持获取 '{file_type}' 类型的内容，或файл已丢失.",
+            detail=f"Завдання '{task_id}' 不支持获取 '{file_type}' 类型的内容，或файл已丢失.",
         )
 
     file_path = file_info["path"]
@@ -831,12 +831,12 @@ async def service_get_engin_list():
 
 @service_router.get(
     "/task-list",
-    summary="获取任务列表",
-    description="返回当前所有正在处理或已完成的翻译任务ID列表.",
+    summary="获取Завдання列表",
+    description="返回当前所有Обробляю或已完成的翻译ЗавданняID列表.",
     tags=["Application"],
     responses={
         200: {
-            "description": "成功返回任务ID列表.",
+            "description": "成功返回ЗавданняID列表.",
             "content": {
                 "application/json": {
                     "example": ["a1b2c3d4", "e5f6g7h8"]
@@ -918,7 +918,7 @@ async def service_flat_translate(
         api_key: str = Form("xx", description="API Key (默认xx)"),
         to_lang: str = Form("中文", description="目标翻译语言"),
         workflow_type: str = Form("auto",
-                                  description="робочий процес类型: auto, markdown_based, txt, json, xlsx, docx, srt, epub, html, ass, pptx"),
+                                  description="Тип робочого процесу: auto, markdown_based, txt, json, xlsx, docx, srt, epub, html, ass, pptx"),
         skip_translate: bool = Form(False, description="是否跳过翻译仅进行格式解析"),
         concurrent: int = Form(default_params["concurrent"], description="并发请求数"),
         chunk_size: int = Form(default_params["chunk_size"], description="文本分块大小"),
@@ -956,7 +956,7 @@ async def service_flat_translate(
         mineru_deploy_server_url: Optional[str] = Form("",
                                                        description="[MinerU Local] Server URL (backend='vlm-http-client'时使用)"),
         json_paths: Optional[List[str]] = Form(None, description="[Json专用] JsonPath 表达式列表, 如 '$.name'"),
-        glossary_generate_enable: bool = Form(False, description="是否开启术语表自动生成"),
+        glossary_generate_enable: bool = Form(False, description="是否开启术语表自动Генерую"),
         glossary_dict_json: Optional[str] = Form("", description="术语表字典 JSON символів串, 格式: {'原文':'译文'}"),
         glossary_agent_config_json: Optional[str] = Form("",
                                                          description="术语表 Agent 配置 JSON символів串 (包含 base_url, model_id 等)"),
@@ -1071,7 +1071,7 @@ async def service_flat_translate(
     task_state = translation_service.get_task_state(task_id)
 
     if not task_state:
-        raise HTTPException(status_code=500, detail="任务状态丢失")
+        raise HTTPException(status_code=500, detail="Завдання状态丢失")
 
     if task_state.get("error_flag"):
         error_msg = task_state.get("status_message", "未知помилка")
@@ -1080,7 +1080,7 @@ async def service_flat_translate(
             import shutil
             shutil.rmtree(temp_dir)
         await translation_service.release_task(task_id)
-        raise HTTPException(status_code=500, detail=f"翻译任务失败: {error_msg}")
+        raise HTTPException(status_code=500, detail=f"翻译Завдання失败: {error_msg}")
 
     task = task_state.get("current_task_ref")
     if task:
@@ -1091,7 +1091,7 @@ async def service_flat_translate(
     if task_state.get("error_flag"):
         error_msg = task_state.get("status_message", "未知помилка")
         await translation_service.release_task(task_id)
-        raise HTTPException(status_code=500, detail=f"翻译任务失败: {error_msg}")
+        raise HTTPException(status_code=500, detail=f"翻译Завдання失败: {error_msg}")
 
     base_url_str = str(request.base_url).rstrip("/")
     downloads = {}

@@ -85,7 +85,7 @@ class ConverterCsv2Xlsx(X2XlsxConverter):
 
             self.logger.info(f"Оброблено {row_count} рядків даних.")
 
-            # --- 6. 将生成的XLSX保存到内存中的字节流 ---
+            # --- 6. 将Генерую的XLSX保存到内存中的字节流 ---
             output_buffer = BytesIO()
             wb.save(output_buffer)
             output_buffer.seek(0)  # 将指针移到开头，以便getvalue()读取完整内容

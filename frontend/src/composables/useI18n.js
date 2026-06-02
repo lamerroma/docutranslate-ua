@@ -17,7 +17,7 @@ export function useI18n() {
     const setLanguage = async (l) => {
         currentLang.value = l;
         localStorage.setItem('ui_language', l);
-        document.documentElement.lang = l === 'zh' ? 'zh-CN' : (l === 'vi' ? 'vi' : 'en');
+        document.documentElement.lang = l === 'uk' ? 'uk' : 'en';
         // Reload i18n data
         try {
             const res = await fetch(`/static/i18n/${l}.json`);

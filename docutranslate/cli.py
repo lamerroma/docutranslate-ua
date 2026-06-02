@@ -64,7 +64,7 @@ def main():
     parser.add_argument(
         "--with-mcp",
         action="store_true",
-        help="启动 Web UI 时同时启用 MCP SSE 端点（共用任务队列）."
+        help="启动 Web UI 时同时启用 MCP SSE 端点（共用Завдання队列）."
     )
 
     parser.add_argument(

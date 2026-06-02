@@ -262,7 +262,7 @@ class Epub2HTMLExporter(EpubExporter):
 
             # 4. 如果没有成功处理任何файл，尝试直接处理所有 HTML файл
             if not combined_html_parts:
-                # print("使用备用方法：处理所有发现的 HTML файл")
+                # print("使用备用方法：处理所有Знайдено的 HTML файл")
                 html_files = self._find_html_files(zip_file)
 
                 for html_file in html_files:

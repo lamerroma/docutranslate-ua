@@ -66,7 +66,7 @@ def uris2placeholder(markdown: str, mask_dict: MaskDict):
 
         # 整个图片都替换为占位符
         mask_dict.set(id, match.group())
-        print(f"生成占位符<ph-{id}>")
+        print(f"Генерую占位符<ph-{id}>")
         return f"<ph-{id}>"
 
     uri_pattern = r'(!\[.*?\])\((.*?)\)'
@@ -364,7 +364,7 @@ def extract_and_process_html_tables(markdown_text: str) -> str:
                                 content.replace_with(processed_content)
             processed_tables[temp_id] = str(soup)
         except Exception as e:
-            print(f"处理表格时出错: {e}")
+            print(f"处理表格— помилка: {e}")
             processed_tables[temp_id] = table_html
 
     # 将处理后的表格替换回原始位置

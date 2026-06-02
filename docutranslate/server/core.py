@@ -196,7 +196,7 @@ def _create_default_task_state() -> Dict[str, Any]:
     """Create a new default task state."""
     return {
         "is_processing": False,
-        "status_message": "空闲",
+        "status_message": "Очікування",
         "error_flag": False,
         "download_ready": False,
         "progress_percent": 0,
@@ -263,7 +263,7 @@ class TranslationService:
         """Get new logs from the queue."""
         if task_id not in self.tasks_log_queues:
             raise HTTPException(
-                status_code=404, detail=f"找不到任务ID '{task_id}' 的日志队列."
+                status_code=404, detail=f"Не знайдено task ID '{task_id}' у черзі логів."
             )
         log_queue = self.tasks_log_queues[task_id]
         new_logs = []
@@ -311,7 +311,7 @@ class TranslationService:
         # Auto workflow routing
         if payload.workflow_type == "auto":
             detected_type = get_workflow_type_from_filename(original_filename)
-            print(f"[{task_id}] 自动识别робочий процес: {original_filename} -> {detected_type}")
+            print(f"[{task_id}] Автовизначення робочого процесу: {original_filename} -> {detected_type}")
 
             # 关键修复：完全手动构造 payload_data，不依赖 model_dump
             # 这样可以确保所有字段都正确传递，不会因为 exclude_none 或其他原因丢失
@@ -352,7 +352,7 @@ class TranslationService:
                         if isinstance(value, str) and value == "" and field_name != "mineru_token":
                             continue  # 跳过空символів串，除了 mineru_token
                         payload_data[field_name] = value
-                        print(f"[{task_id}] 复制字段 {field_name}: {type(value).__name__}" +
+                        print(f"[{task_id}] Копіюю поле {field_name}: {type(value).__name__}" +
                               (f" (len={len(value)})" if isinstance(value, str) else ""))
 
             # 调试日志
@@ -383,7 +383,7 @@ class TranslationService:
                 if hasattr(payload, "convert_engine"):
                     print(f"[{task_id}] After validation: convert_engine={payload.convert_engine}")
             except Exception as e:
-                raise HTTPException(status_code=400, detail=f"自动转换робочий процес参数失败: {mask_secrets(str(e))}")
+                raise HTTPException(status_code=400, detail=f"Не вдалось автоматично конвертувати параметри робочого процесу: {mask_secrets(str(e))}")
 
         if task_id not in self.tasks_state:
             self.tasks_state[task_id] = _create_default_task_state()
@@ -397,7 +397,7 @@ class TranslationService:
             and not task_state["current_task_ref"].done()
         ):
             raise HTTPException(
-                status_code=429, detail=f"任务ID '{task_id}' 正在进行中，请稍后再试."
+                status_code=429, detail=f"ЗавданняID '{task_id}' виконується, спробуйте пізніше."
             )
 
         if task_state.get("temp_dir") and os.path.isdir(task_state["temp_dir"]):
@@ -409,7 +409,7 @@ class TranslationService:
         task_state.update(
             {
                 "is_processing": True,
-                "status_message": "任务初始化中...",
+                "status_message": "Ініціалізація завдання...",
                 "error_flag": False,
                 "download_ready": False,
                 "workflow_instance": None,
@@ -446,18 +446,18 @@ class TranslationService:
             return {
                 "task_started": True,
                 "task_id": task_id,
-                "message": "翻译任务已成功启动，请稍候...",
+                "message": "Завдання перекладу успішно запущено, зачекайте...",
             }
         except Exception as e:
             task_state.update(
                 {
                     "is_processing": False,
-                    "status_message": f"启动任务失败: {e}",
+                    "status_message": f"Не вдалось запустити завдання: {e}",
                     "error_flag": True,
                     "current_task_ref": None,
                 }
             )
-            raise HTTPException(status_code=500, detail=f"启动翻译任务时出错: {mask_secrets(str(e))}")
+            raise HTTPException(status_code=500, detail=f"Помилка при запуску завдання перекладу: {mask_secrets(str(e))}")
 
     async def _perform_translation(
         self,
@@ -487,7 +487,7 @@ class TranslationService:
         task_logger.info(
             f"Фонове завдання перекладу запущено: файл '{original_filename}', робочий процес: '{payload.workflow_type}'"
         )
-        task_state["status_message"] = f"正在处理 '{original_filename}'..."
+        task_state["status_message"] = f"Обробляю '{original_filename}'..."
 
         def update_progress(percent: int, message: str):
             task_state["progress_percent"] = percent
@@ -504,7 +504,7 @@ class TranslationService:
         try:
             workflow_class = WORKFLOW_DICT.get(payload.workflow_type)
             if not workflow_class:
-                raise ValueError(f"不支持的робочий процес类型: '{payload.workflow_type}'")
+                raise ValueError(f"Непідтримуваний тип робочого процесу: '{payload.workflow_type}'")
 
             workflow: Workflow
 
@@ -571,14 +571,14 @@ class TranslationService:
                     task_logger.info(f"Успішно згенеровано {file_type} файл")
                 except Exception as export_error:
                     task_logger.error(
-                        f"生成 {file_type} файл时出错: {export_error}", exc_info=True
+                        f"Генерую {file_type} помилка при генерації файлу: {export_error}", exc_info=True
                     )
 
             attachment_files = {}
             attachment_object = workflow.get_attachment()
             if attachment_object and attachment_object.attachment_dict:
                 task_logger.info(
-                    f"发现 {len(attachment_object.attachment_dict)} 个附件，正在处理..."
+                    f"Знайдено {len(attachment_object.attachment_dict)} вкладень, обробляю..."
                 )
                 for identifier, doc in attachment_object.attachment_dict.items():
                     try:
@@ -591,11 +591,11 @@ class TranslationService:
                             "filename": attachment_filename,
                         }
                         task_logger.info(
-                            f"Успішно згенеровано附件 '{identifier}' файл: {attachment_filename}"
+                            f"Успішно згенеровано вкладення '{identifier}' файл: {attachment_filename}"
                         )
                     except Exception as attachment_error:
                         task_logger.error(
-                            f"生成附件 '{identifier}' файл时出错: {attachment_error}",
+                            f"Генерую вкладення '{identifier}' помилка при генерації файлу: {attachment_error}",
                             exc_info=True,
                         )
 
@@ -608,7 +608,7 @@ class TranslationService:
 
             task_state.update(
                 {
-                    "status_message": f"Переклад завершено！用时 {duration:.2f} сек.",
+                    "status_message": f"Переклад завершено! Тривалість {duration:.2f} сек.",
                     "download_ready": True,
                     "error_flag": False,
                     "progress_percent": 100,
@@ -624,7 +624,7 @@ class TranslationService:
             end_time = time.time()
             duration = end_time - task_state["task_start_time"]
             task_logger.info(
-                f"翻译任务 '{original_filename}' 已被取消 (用时 {duration:.2f} сек)."
+                f"Завдання перекладу '{original_filename}' скасовано (тривалість {duration:.2f} сек)."
             )
             # 尝试获取已有的统计数据
             statistics = {}
@@ -635,7 +635,7 @@ class TranslationService:
                 pass
             task_state.update(
                 {
-                    "status_message": f"翻译任务已取消 (用时 {duration:.2f} сек).",
+                    "status_message": f"Завдання перекладу скасовано (тривалість {duration:.2f} сек).",
                     "error_flag": False,
                     "download_ready": False,
                     "progress_percent": 100,
@@ -646,7 +646,7 @@ class TranslationService:
         except Exception as e:
             end_time = time.time()
             duration = end_time - task_state["task_start_time"]
-            error_message = f"翻译失败: {e}"
+            error_message = f"Переклад провалився: {e}"
             task_logger.error(error_message, exc_info=True)
             # 尝试获取已有的统计数据
             statistics = {}
@@ -657,7 +657,7 @@ class TranslationService:
                 pass
             task_state.update(
                 {
-                    "status_message": f"翻译过程中发生помилка (用时 {duration:.2f} сек): {mask_secrets(str(e))}",
+                    "status_message": f"Помилка під час перекладу (тривалість {duration:.2f} сек): {mask_secrets(str(e))}",
                     "error_flag": True,
                     "download_ready": False,
                     "progress_percent": 100,
@@ -1166,7 +1166,7 @@ class TranslationService:
             return PPTXWorkflow(config=workflow_config)
 
         else:
-            raise TypeError(f"робочий процес类型 '{payload.workflow_type}' 的处理逻辑未实现.")
+            raise TypeError(f"Тип робочого процесу '{payload.workflow_type}' не має реалізованої логіки обробки.")
 
     def _build_export_map(
         self,
@@ -1285,33 +1285,33 @@ class TranslationService:
         """Cancel a running task."""
         task_state = self.tasks_state.get(task_id)
         if not task_state:
-            raise HTTPException(status_code=404, detail=f"找不到任务ID '{task_id}'.")
+            raise HTTPException(status_code=404, detail=f"Не знайдено task ID '{task_id}'.")
         if (
             not task_state
             or not task_state["is_processing"]
             or not task_state["current_task_ref"]
         ):
             raise HTTPException(
-                status_code=400, detail=f"任务ID '{task_id}' 没有正在进行的翻译任务可取消."
+                status_code=400, detail=f"ЗавданняID '{task_id}' немає активного завдання перекладу для скасування."
             )
 
         task_to_cancel: Optional[asyncio.Task] = task_state["current_task_ref"]
         if not task_to_cancel or task_to_cancel.done():
             task_state["is_processing"] = False
             task_state["current_task_ref"] = None
-            raise HTTPException(status_code=400, detail="任务已完成或已被取消.")
+            raise HTTPException(status_code=400, detail="Завдання вже завершено або скасовано.")
 
-        print(f"[{task_id}] 收到取消翻译任务的请求.")
+        print(f"[{task_id}] Отримано запит на скасування завдання перекладу.")
         task_to_cancel.cancel()
-        task_state["status_message"] = "正在取消任务..."
-        return {"cancelled": True, "message": "取消请求已发送.请等待状态更新."}
+        task_state["status_message"] = "Скасовую завдання..."
+        return {"cancelled": True, "message": "Запит на скасування надіслано. Очікуйте оновлення статусу."}
 
     async def release_task(self, task_id: str) -> Dict[str, Any]:
         """Release task resources."""
         if task_id not in self.tasks_state:
             return {
                 "released": False,
-                "message": f"找不到任务ID '{task_id}'."
+                "message": f"Не знайдено task ID '{task_id}'."
             }
         task_state = self.tasks_state.get(task_id)
         message_parts = []
@@ -1321,29 +1321,29 @@ class TranslationService:
             and task_state.get("current_task_ref")
         ):
             try:
-                print(f"[{task_id}] 任务正在进行中，将在释放前尝试取消.")
+                print(f"[{task_id}] Завдання виконується, буде спроба скасувати перед звільненням ресурсів.")
                 self.cancel_task(task_id)
-                message_parts.append("任务已被取消.")
+                message_parts.append("Завдання скасовано.")
             except HTTPException as e:
-                print(f"[{task_id}] 取消任务时出现预期中的情况（可能已完成）: {e.detail}")
-                message_parts.append(f"任务取消步骤已跳过（可能已完成或取消）.")
+                print(f"[{task_id}] Очікувана ситуація при скасуванні (можливо, вже завершено): {e.detail}")
+                message_parts.append(f"Крок скасування пропущено (можливо, вже завершено або скасовано).")
 
         if task_state:
             temp_dir = task_state.get("temp_dir")
             if temp_dir and os.path.isdir(temp_dir):
                 try:
                     shutil.rmtree(temp_dir)
-                    message_parts.append("临时файл已清理.")
-                    print(f"[{task_id}] 临时目录 '{temp_dir}' 已被删除.")
+                    message_parts.append("Тимчасові файли очищено.")
+                    print(f"[{task_id}] Тимчасова директорія '{temp_dir}' видалена.")
                 except Exception as e:
-                    message_parts.append(f"清理临时файл时出错: {e}.")
-                    print(f"[{task_id}] 删除临时目录 '{temp_dir}' 时出错: {e}")
+                    message_parts.append(f"Помилка при очищенні тимчасових файлів: {e}.")
+                    print(f"[{task_id}] Видалення тимчасової директорії '{temp_dir}' — помилка: {e}")
 
         self.tasks_state.pop(task_id, None)
         self.tasks_log_queues.pop(task_id, None)
         self.tasks_log_histories.pop(task_id, None)
-        print(f"[{task_id}] 资源已成功释放.")
-        message_parts.append(f"任务 '{task_id}' 的资源已释放.")
+        print(f"[{task_id}] Ресурси успішно звільнено.")
+        message_parts.append(f"Завдання '{task_id}' звільнено ресурси.")
         return {"released": True, "message": " ".join(message_parts)}
 
     async def cleanup_all(self):
@@ -1352,7 +1352,7 @@ class TranslationService:
         for task_id, task_state in self.tasks_state.items():
             task_ref = task_state.get("current_task_ref")
             if task_ref and not task_ref.done():
-                print(f"[{task_id}] 检测到未完成任务，正在强制取消...")
+                print(f"[{task_id}] Виявлено незавершене завдання, примусово скасовую...")
                 task_ref.cancel()
                 pending_tasks.append(task_ref)
 
@@ -1364,17 +1364,17 @@ class TranslationService:
             if temp_dir and os.path.isdir(temp_dir):
                 try:
                     shutil.rmtree(temp_dir, ignore_errors=True)
-                    print(f"[{task_id}] 临时目录已清理: {temp_dir}")
+                    print(f"[{task_id}] Тимчасову директорію очищено: {temp_dir}")
                 except Exception as e:
-                    print(f"[{task_id}] 清理临时目录 '{temp_dir}' 时出错: {e}")
+                    print(f"[{task_id}] Очищення тимчасової директорії '{temp_dir}' — помилка: {e}")
 
         # Cleanup HTTP client
         if self.httpx_client is not None:
             try:
                 await self.httpx_client.aclose()
-                print("[TranslationService] HTTP客户端已关闭")
+                print("[TranslationService] HTTP-клієнт закрито")
             except Exception as e:
-                print(f"[TranslationService] 关闭HTTP客户端时出错: {e}")
+                print(f"[TranslationService] Помилка при закритті HTTP-клієнта: {e}")
             finally:
                 self.httpx_client = None
 

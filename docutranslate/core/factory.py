@@ -51,7 +51,7 @@ def create_workflow_from_payload(payload: TranslatePayload, logger: logging.Logg
     if logger is None:
         logger = logging.getLogger("docutranslate.factory")
 
-    # 辅助函数：Будую术语表生成配置
+    # 辅助函数：Будую术语表Генерую配置
     def build_glossary_agent_config():
         if payload.glossary_generate_enable and payload.glossary_agent_config:
             return GlossaryAgentConfig(logger=logger, **payload.glossary_agent_config.model_dump())

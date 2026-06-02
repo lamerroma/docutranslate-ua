@@ -102,7 +102,7 @@ class SrtTranslator(AiTranslator):
     def _after_translate(self, subtitles: list[srt.Subtitle], translated_texts: list[str],
                          original_texts: list[str]) -> bytes:
         """
-        翻译后处理步骤：将译文根据配置模式写回字幕对象，并生成新的SRTфайл内容.
+        翻译后处理步骤：将译文根据配置模式写回字幕对象，并Генерую新的SRTфайл内容.
 
         Returns:
             bytes: 新的SRTфайл内容的字节流.

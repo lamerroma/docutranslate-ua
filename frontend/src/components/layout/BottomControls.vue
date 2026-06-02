@@ -8,17 +8,11 @@
                 </button>
             </template>
             <a class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-               :class="currentLang === 'zh' ? 'text-primary font-medium' : 'text-gray-700 dark:text-gray-300'"
-               href="#" @click.prevent="emit('setLang', 'zh')">中文</a>
+               :class="currentLang === 'uk' ? 'text-primary font-medium' : 'text-gray-700 dark:text-gray-300'"
+               href="#" @click.prevent="emit('setLang', 'uk')">Українська</a>
             <a class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                :class="currentLang === 'en' ? 'text-primary font-medium' : 'text-gray-700 dark:text-gray-300'"
                href="#" @click.prevent="emit('setLang', 'en')">English</a>
-            <a class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-               :class="currentLang === 'vi' ? 'text-primary font-medium' : 'text-gray-700 dark:text-gray-300'"
-               href="#" @click.prevent="emit('setLang', 'vi')">Tiếng Việt</a>
-            <a class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
-               :class="currentLang === 'uk' ? 'text-primary font-medium' : 'text-gray-700 dark:text-gray-300'"
-               href="#" @click.prevent="emit('setLang', 'uk')">Українська</a>
         </Dropdown>
         <Dropdown>
             <template #trigger>

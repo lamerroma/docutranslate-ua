@@ -96,7 +96,7 @@ class AiTranslator(Translator[T]):
 
     def get_statistics(self) -> Dict[str, Any]:
         """
-        收集所有agent的统计信息，包括术语表生成和翻译两个阶段的统计.
+        收集所有agent的统计信息，包括术语表Генерую和翻译两个阶段的统计.
 
         Returns:
             Dict[str, Any]: 包含glossary、translation和total三个部分的统计信息
@@ -128,7 +128,7 @@ class AiTranslator(Translator[T]):
         计算汇总统计信息.
 
         Args:
-            glossary_stats: 术语表生成阶段的统计
+            glossary_stats: 术语表Генерую阶段的统计
             translation_stats: 翻译阶段的统计
 
         Returns:

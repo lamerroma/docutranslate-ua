@@ -92,7 +92,7 @@ class TranslationResult:
             fmt = self._supported_formats[0]
             method_name, default_suffix = self._mapping[fmt]
 
-        # 生成файл名
+        # Генеруюфайл名
         if not name:
             base_name = os.path.splitext(self._original_filename)[0]
             name = f"{base_name}.{default_suffix}"
@@ -330,10 +330,10 @@ class Client:
             **kwargs
     ) -> TranslationResult:
         """
-        异步执行翻译任务.
+        异步执行翻译Завдання.
 
         :param file_path: 输入файл路径 (必需).
-        :param workflow_type: робочий процес类型 (auto, docx, markdown_based, xlsx, json, txt).
+        :param workflow_type: Тип робочого процесу (auto, docx, markdown_based, xlsx, json, txt).
         :param skip_translate: 若为 True，仅进行解析/OCR，不调用 LLM 翻译.
         :param concurrent: LLM 请求并发数.
         :param json_paths: [Json专用] JsonPath 列表 (如 '$.data.*').
