@@ -8,10 +8,6 @@
                         <Heroicon name="QuestionMarkCircleIcon" class="w-4 h-4 me-1" solid />
                         <span>{{ t('tutorialBtn') }}</span>
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-warning" @click="showContributors = true">
-                        <Heroicon name="UserGroupIcon" class="w-4 h-4 me-1" solid />
-                        <span>{{ t('projectContributeBtn') }}</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -65,11 +61,6 @@
         <TutorialContent :t="t" @close="showTutorial = false" />
     </Modal>
 
-    <!-- Contributors Modal -->
-    <Modal v-model="showContributors" :title="t('contributorsModalTitle')" size="lg">
-        <ContributorsContent :t="t" @close="showContributors = false" />
-    </Modal>
-
     <!-- Default Workflow Modal -->
     <DefaultWorkflowModal
         ref="defaultWorkflowModal"
@@ -85,7 +76,6 @@ import TranslationSettings from './TranslationSettings.vue';
 import GlossarySettings from './GlossarySettings.vue';
 import Modal from '../ui/Modal.vue';
 import TutorialContent from '../modals/TutorialContent.vue';
-import ContributorsContent from '../modals/ContributorsContent.vue';
 import DefaultWorkflowModal from '../modals/DefaultWorkflowModal.vue';
 import Heroicon from '../ui/Heroicon.vue';
 
@@ -122,7 +112,6 @@ const webSkipValidation = inject('webSkipValidation');
 
 const configFile = ref(null);
 const showTutorial = ref(false);
-const showContributors = ref(false);
 const defaultWorkflowModal = ref(null);
 
 const handleExportConfig = () => {
